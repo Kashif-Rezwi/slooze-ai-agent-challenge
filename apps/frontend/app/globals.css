@@ -6,14 +6,14 @@
 
 /* ─── Design Tokens ───────────────────────────────────────────────────────── */
 @theme {
-  /* Surfaces — deep GitHub-dark feel */
-  --color-surface:     #0d1117;
-  --color-surface-2:   #161b22;
-  --color-surface-3:   #1e2631;
+  /* Surfaces */
+  --color-surface:      #0d1117;
+  --color-surface-2:    #161b22;
+  --color-surface-3:    #1e2631;
 
   /* Borders */
-  --color-border:      #2d333b;
-  --color-border-muted:#21262d;
+  --color-border:       #2d333b;
+  --color-border-muted: #21262d;
 
   /* Text */
   --color-text-primary: #e6edf3;
@@ -24,15 +24,6 @@
   --color-accent:       #6c63ff;
   --color-accent-hover: #7c72ff;
   --color-accent-muted: rgba(108, 99, 255, 0.15);
-
-  /* Bubbles */
-  --color-user-bubble:  #6c63ff;
-  --color-ai-bubble:    #161b22;
-
-  /* Named shadows */
-  --shadow-glow-accent: 0 0 16px rgba(108, 99, 255, 0.25);
-  --shadow-float:       0 4px 24px rgba(0, 0, 0, 0.50);
-  --shadow-float-sm:    0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* ─── Base Reset ──────────────────────────────────────────────────────────── */
@@ -49,13 +40,13 @@ body {
   height: 100%;
   background-color: var(--color-surface);
   color: var(--color-text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* var(--font-inter) is injected by next/font/google in layout.tsx */
+  font-family: var(--font-inter, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-size: 15px;
   line-height: 1.7;
   font-feature-settings: 'rlig' 1, 'calt' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior: none;
 }
 
 /* ─── Scrollbar Hide (global) ─────────────────────────────────────────────── */
@@ -73,11 +64,6 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
 @keyframes slideInUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -93,18 +79,9 @@ body {
   to   { opacity: 1; max-height: 120px; transform: translateY(0); }
 }
 
-@keyframes pulseSubtle {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.65; }
-}
-
 @keyframes cursorBlink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
-}
-
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
 }
 
 @keyframes bounceDot {
@@ -113,47 +90,25 @@ body {
 }
 
 /* ─── Animation Utility Classes ───────────────────────────────────────────── */
-.animate-fade-in       { animation: fadeIn 0.3s ease-out both; }
-.animate-slide-in-left { animation: slideInLeft 0.25s ease-out both; }
-.animate-slide-in-up   { animation: slideInUp 0.3s ease-out both; }
-.animate-scale-in      { animation: scaleIn 0.2s ease-out both; }
-.animate-slide-down    { animation: slideDown 0.3s ease-out forwards; }
-.animate-pulse-subtle  { animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-fade-in    { animation: fadeIn 0.3s ease-out both; }
+.animate-slide-in-up { animation: slideInUp 0.3s ease-out both; }
+.animate-scale-in   { animation: scaleIn 0.2s ease-out both; }
+.animate-slide-down { animation: slideDown 0.3s ease-out forwards; }
 
 /* Staggered dot bounce for typing indicator */
 .dot-1 { animation: bounceDot 1.2s ease-in-out infinite; }
 .dot-2 { animation: bounceDot 1.2s ease-in-out 0.2s infinite; }
 .dot-3 { animation: bounceDot 1.2s ease-in-out 0.4s infinite; }
 
-/* Shimmer for skeleton loading */
-.shimmer {
-  position: relative;
-  overflow: hidden;
-  background: var(--color-surface-2);
-}
-.shimmer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255,255,255,0.04) 50%,
-    transparent 100%
-  );
-  animation: shimmer 1.6s ease-in-out infinite;
-}
-
 /* ─── Streaming Cursor ────────────────────────────────────────────────────── */
-/* Applied to AI message bubbles while streaming token-by-token */
+/* Appended to the last child of [data-streaming] elements */
 [data-streaming] > *:last-child::after {
   content: " ▍";
   animation: cursorBlink 0.75s step-end infinite;
   color: var(--color-text-muted);
 }
 
-/* ─── Prose Styles (AI Message Content) ──────────────────────────────────── */
+/* ─── Prose Styles (AI message markdown) ─────────────────────────────────── */
 .prose {
   color: var(--color-text-primary);
   font-size: 15px;
@@ -163,11 +118,8 @@ body {
 .prose p:first-child { margin-top: 0; }
 .prose p:last-child  { margin-bottom: 0; }
 
-.prose strong {
-  font-weight: 600;
-  color: #ffffff;
-}
-.prose em { font-style: italic; }
+.prose strong { font-weight: 600; color: #ffffff; }
+.prose em     { font-style: italic; }
 
 .prose h1, .prose h2, .prose h3, .prose h4 {
   color: #ffffff;
@@ -232,22 +184,3 @@ body {
   border-top: 1px solid var(--color-border);
   margin: 1.5em 0;
 }
-
-/* ─── Misc Utilities ──────────────────────────────────────────────────────── */
-.transition-smooth {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hover-lift {
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-}
-.hover-lift:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-float-sm);
-}
-
-.focus-ring:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-accent);
-}
-

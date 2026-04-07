@@ -9,20 +9,47 @@ interface ChatWindowProps {
   isLoading: boolean
 }
 
-// Quick-action suggestion chips shown on the empty state
-const SUGGESTIONS = [
-  { icon: '🌐', label: 'Search the web' },
-  { icon: '📄', label: 'Chat with a PDF' },
-  { icon: '⚡', label: 'Summarize content' },
+// ── Suggestion chip icons (inline SVG — no external dep) ─────────────────
+function GlobeIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+    </svg>
+  )
+}
+function DocumentIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+    </svg>
+  )
+}
+function BoltIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  )
+}
+
+// Suggestion chips shown on empty state
+const SUGGESTIONS: { icon: React.ReactNode; label: string }[] = [
+  { icon: <GlobeIcon />, label: 'Search the web' },
+  { icon: <DocumentIcon />, label: 'Chat with a PDF' },
+  { icon: <BoltIcon />, label: 'Summarize content' },
 ]
 
 function EmptyState() {
   return (
     <div className="h-full flex flex-col items-center justify-center gap-8 py-16 animate-fade-in">
       {/* Hero headline */}
-      <div className="text-center space-y-3 max-w-md">
+      <div className="text-center space-y-2.5 max-w-sm">
         <h1
-          className="text-3xl font-bold tracking-tight"
+          className="text-[2rem] font-bold tracking-tight leading-tight"
           style={{
             background: 'linear-gradient(135deg, #e6edf3 0%, #9f96ff 60%, #6c63ff 100%)',
             WebkitBackgroundClip: 'text',
@@ -30,10 +57,10 @@ function EmptyState() {
             backgroundClip: 'text',
           }}
         >
-          What do you want to know?
+          Ask anything.
         </h1>
         <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-          Search the web in real-time, or upload a PDF and ask questions about it.
+          Search the web or chat with your documents — all in one place.
         </p>
       </div>
 
@@ -42,10 +69,10 @@ function EmptyState() {
         {SUGGESTIONS.map((s, i) => (
           <div
             key={s.label}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] text-sm text-[var(--color-text-muted)] cursor-default select-none animate-scale-in"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] text-sm text-[var(--color-text-muted)] cursor-default select-none animate-scale-in"
             style={{ animationDelay: `${i * 60}ms` }}
           >
-            <span>{s.icon}</span>
+            {s.icon}
             <span>{s.label}</span>
           </div>
         ))}
@@ -96,5 +123,3 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
     </div>
   )
 }
-
-

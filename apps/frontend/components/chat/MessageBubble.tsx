@@ -47,5 +47,3 @@ export default function MessageBubble({ message, isStreaming }: MessageBubblePro
     </div>
   )
 }
-
-

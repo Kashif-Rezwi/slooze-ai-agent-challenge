@@ -32,21 +32,21 @@ export default function SourceChips({ sources }: SourceChipsProps) {
         Sources
       </p>
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {sources.map((src, i) => {
+        {sources.map((src) => {
           const hostname = getHostname(src)
           const favicon = getFaviconUrl(src)
           const isUrl = src.startsWith('http')
 
           return (
             <a
-              key={i}
+              key={src}
               href={isUrl ? src : undefined}
               target="_blank"
               rel="noopener noreferrer"
               title={src}
               className="flex-none flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-3)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-surface-2)] transition-colors group"
             >
-              {favicon && isUrl ? (
+              {favicon ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={favicon}

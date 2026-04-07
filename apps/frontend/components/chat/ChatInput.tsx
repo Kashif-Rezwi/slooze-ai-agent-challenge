@@ -32,15 +32,14 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
     }
   }
 
-  function handleInput() {
-    const el = textareaRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setValue(e.target.value)
+    // Auto-grow textarea up to 160px
+    e.target.style.height = 'auto'
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`
   }
-
-  // Drag-and-drop on the composer card
   function handleDragOver(e: DragEvent<HTMLDivElement>) {
+    if (!onPdfSelect) return
     e.preventDefault()
     setIsDragging(true)
   }
@@ -84,9 +83,8 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
           ref={textareaRef}
           rows={1}
           value={value}
-          onChange={e => setValue(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
-          onInput={handleInput}
           placeholder={isDragging ? 'Drop PDF here…' : 'Ask anything, or upload a PDF…'}
           disabled={isLoading}
           className="w-full bg-transparent resize-none outline-none text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-subtle)] disabled:opacity-50 leading-relaxed"
