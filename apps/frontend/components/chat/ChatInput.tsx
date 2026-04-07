@@ -85,7 +85,7 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={isDragging ? 'Drop PDF here…' : 'Ask anything, or upload a PDF…'}
+          placeholder={isDragging ? 'Drop PDF here…' : 'Message Slooze AI…'}
           disabled={isLoading}
           className="w-full bg-transparent resize-none outline-none text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-subtle)] disabled:opacity-50 leading-relaxed"
           style={{ minHeight: '24px', maxHeight: '160px' }}
@@ -118,7 +118,7 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
           </button>
 
           <span className="text-[11px] text-[var(--color-text-subtle)] hidden sm:block">
-            PDF supported · Shift+Enter for newline
+            Shift+Enter for newline
           </span>
         </div>
 

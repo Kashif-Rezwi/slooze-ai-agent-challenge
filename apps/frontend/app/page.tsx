@@ -41,7 +41,7 @@ export default function ChatPage() {
             </span>
             <span
               className="font-semibold text-[15px] tracking-tight"
-              style={{ color: '#9f96ff' }}
+              style={{ color: 'var(--color-accent-light)' }}
             >
               AI
             </span>
@@ -53,7 +53,7 @@ export default function ChatPage() {
             style={{
               background: 'linear-gradient(135deg, rgba(108,99,255,0.15) 0%, rgba(159,150,255,0.12) 100%)',
               border: '1px solid rgba(108,99,255,0.25)',
-              color: '#9f96ff',
+              color: 'var(--color-accent-light)',
             }}
           >
             Beta

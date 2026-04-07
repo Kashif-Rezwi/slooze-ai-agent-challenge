@@ -12,7 +12,7 @@ export default function PdfSessionBanner({ filename, onClear }: PdfSessionBanner
   if (!filename) return null
 
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-amber-500/8 border border-amber-500/20 border-l-2 border-l-amber-500 text-sm animate-slide-down">
+    <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm animate-slide-down bg-amber-500/8 border-l-2 border-l-amber-500 border-t border-r border-b border-amber-500/15">
       <span className="flex items-center gap-2 text-amber-400 truncate min-w-0">
         {/* Document icon */}
         <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -33,4 +33,3 @@ export default function PdfSessionBanner({ filename, onClear }: PdfSessionBanner
     </div>
   )
 }
-

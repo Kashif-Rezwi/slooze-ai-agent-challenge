@@ -13,7 +13,6 @@
 
   /* Borders */
   --color-border:       #2d333b;
-  --color-border-muted: #21262d;
 
   /* Text */
   --color-text-primary: #e6edf3;
@@ -22,6 +21,7 @@
 
   /* Accent — Slooze purple */
   --color-accent:       #6c63ff;
+  --color-accent-light: #9f96ff;   /* lighter tint — wordmarks, gradients */
   --color-accent-hover: #7c72ff;
   --color-accent-muted: rgba(108, 99, 255, 0.15);
 }

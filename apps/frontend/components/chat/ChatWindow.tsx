@@ -51,7 +51,7 @@ function EmptyState() {
         <h1
           className="text-[2rem] font-bold tracking-tight leading-tight"
           style={{
-            background: 'linear-gradient(135deg, #e6edf3 0%, #9f96ff 60%, #6c63ff 100%)',
+            background: `linear-gradient(135deg, var(--color-text-primary) 0%, var(--color-accent-light) 55%, var(--color-accent) 100%)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -60,7 +60,7 @@ function EmptyState() {
           Ask anything.
         </h1>
         <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-          Search the web or chat with your documents — all in one place.
+          Real-time web search. PDF conversations.
         </p>
       </div>
 
