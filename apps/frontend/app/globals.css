@@ -1,22 +1,251 @@
-/* Tailwind CSS v4 — single import replaces the three v3 directives */
+/* ─── Tailwind CSS v4 ─────────────────────────────────────────────────────── */
 @import "tailwindcss";
 
+
+/* ─── Design Tokens ───────────────────────────────────────────────────────── */
 @theme {
-  --color-surface: #0f0f0f;
-  --color-surface-2: #1a1a1a;
-  --color-surface-3: #242424;
-  --color-border: #2e2e2e;
-  --color-text-primary: #f5f5f5;
-  --color-text-muted: #888888;
-  --color-accent: #6c63ff;
+  /* Surfaces — deep GitHub-dark feel */
+  --color-surface:     #0d1117;
+  --color-surface-2:   #161b22;
+  --color-surface-3:   #1e2631;
+
+  /* Borders */
+  --color-border:      #2d333b;
+  --color-border-muted:#21262d;
+
+  /* Text */
+  --color-text-primary: #e6edf3;
+  --color-text-muted:   #7d8590;
+  --color-text-subtle:  #484f58;
+
+  /* Accent — Slooze purple */
+  --color-accent:       #6c63ff;
   --color-accent-hover: #7c72ff;
-  --color-user-bubble: #6c63ff;
-  --color-ai-bubble: #1e1e1e;
+  --color-accent-muted: rgba(108, 99, 255, 0.15);
+
+  /* Bubbles */
+  --color-user-bubble:  #6c63ff;
+  --color-ai-bubble:    #161b22;
+
+  /* Named shadows */
+  --shadow-glow-accent: 0 0 16px rgba(108, 99, 255, 0.25);
+  --shadow-float:       0 4px 24px rgba(0, 0, 0, 0.50);
+  --shadow-float-sm:    0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-html,
+/* ─── Base Reset ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
 body {
   height: 100%;
   background-color: var(--color-surface);
   color: var(--color-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
 }
+
+/* ─── Scrollbar Hide (global) ─────────────────────────────────────────────── */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Keyframe Animations ─────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+  to   { opacity: 1; max-height: 120px; transform: translateY(0); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@keyframes bounceDot {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40%           { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ─── Animation Utility Classes ───────────────────────────────────────────── */
+.animate-fade-in       { animation: fadeIn 0.3s ease-out both; }
+.animate-slide-in-left { animation: slideInLeft 0.25s ease-out both; }
+.animate-slide-in-up   { animation: slideInUp 0.3s ease-out both; }
+.animate-scale-in      { animation: scaleIn 0.2s ease-out both; }
+.animate-slide-down    { animation: slideDown 0.3s ease-out forwards; }
+.animate-pulse-subtle  { animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+/* Staggered dot bounce for typing indicator */
+.dot-1 { animation: bounceDot 1.2s ease-in-out infinite; }
+.dot-2 { animation: bounceDot 1.2s ease-in-out 0.2s infinite; }
+.dot-3 { animation: bounceDot 1.2s ease-in-out 0.4s infinite; }
+
+/* Shimmer for skeleton loading */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-2);
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.04) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ─── Streaming Cursor ────────────────────────────────────────────────────── */
+/* Applied to AI message bubbles while streaming token-by-token */
+[data-streaming] > *:last-child::after {
+  content: " ▍";
+  animation: cursorBlink 0.75s step-end infinite;
+  color: var(--color-text-muted);
+}
+
+/* ─── Prose Styles (AI Message Content) ──────────────────────────────────── */
+.prose {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.prose p { margin: 0.9em 0; }
+.prose p:first-child { margin-top: 0; }
+.prose p:last-child  { margin-bottom: 0; }
+
+.prose strong {
+  font-weight: 600;
+  color: #ffffff;
+}
+.prose em { font-style: italic; }
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: #ffffff;
+  font-weight: 600;
+  margin: 1.4em 0 0.6em;
+  line-height: 1.3;
+}
+.prose h1 { font-size: 1.3em; }
+.prose h2 { font-size: 1.15em; }
+.prose h3 { font-size: 1.05em; }
+
+.prose ul, .prose ol {
+  margin: 0.8em 0;
+  padding-left: 1.6em;
+}
+.prose li { margin: 0.4em 0; }
+.prose ul li { list-style-type: disc; }
+.prose ol li { list-style-type: decimal; }
+
+.prose code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15em 0.45em;
+  border-radius: 5px;
+  font-size: 0.88em;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  color: #c9b8ff;
+}
+
+.prose pre {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-border);
+  padding: 1.1em 1.3em;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 1.2em 0;
+  line-height: 1.6;
+}
+.prose pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-primary);
+  font-size: 0.9em;
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1em;
+  margin: 1em 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose a:hover { color: var(--color-accent-hover); }
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.5em 0;
+}
+
+/* ─── Misc Utilities ──────────────────────────────────────────────────────── */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-float-sm);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+

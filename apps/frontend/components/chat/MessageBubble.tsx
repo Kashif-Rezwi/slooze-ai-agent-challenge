@@ -4,46 +4,61 @@ import SourceChips from './SourceChips'
 
 interface MessageBubbleProps {
   message: ChatMessage
+  /** Pass true on the last AI message to enable the streaming cursor */
+  isStreaming?: boolean
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
+  /* ── User message ─────────────────────────────────────────────────── */
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div
+          className="max-w-[80%] px-4 py-3 rounded-2xl rounded-br-sm text-sm leading-relaxed text-white whitespace-pre-wrap"
+          style={{
+            background: 'linear-gradient(135deg, #6c63ff 0%, #7c72ff 100%)',
+            boxShadow: '0 1px 4px rgba(108, 99, 255, 0.3)',
+          }}
+        >
+          {message.content}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── AI message ───────────────────────────────────────────────────── */
   return (
-    <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
-      {/* Avatar */}
+    <div className="flex items-start gap-3">
+      {/* AI Avatar — gradient badge */}
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
-          isUser
-            ? 'bg-[var(--color-user-bubble)] text-white'
-            : 'bg-[var(--color-surface-3)] text-[var(--color-text-muted)]'
-        }`}
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5"
+        style={{ background: 'linear-gradient(135deg, #6c63ff 0%, #9f96ff 100%)' }}
       >
-        {isUser ? 'You' : 'AI'}
+        S
       </div>
 
-      {/* Bubble */}
-      <div className={`max-w-[75%] space-y-2 ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
+      {/* Content column */}
+      <div className="flex-1 min-w-0 space-y-2">
+        {/* Bubble */}
         <div
-          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-            isUser
-              ? 'bg-[var(--color-user-bubble)] text-white rounded-tr-sm'
-              : 'bg-[var(--color-ai-bubble)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-tl-sm'
-          }`}
+          className="prose px-4 py-3.5 rounded-2xl rounded-tl-sm bg-[var(--color-ai-bubble)] border border-[var(--color-border)]"
+          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+          {...(isStreaming ? { 'data-streaming': '' } : {})}
         >
           {message.content}
         </div>
 
-        {/* Mode badge + sources — only on AI messages */}
-        {!isUser && (
-          <div className="flex flex-col gap-1.5 w-full">
-            {message.mode && <ModeBadge mode={message.mode} />}
-            {message.sources && message.sources.length > 0 && (
-              <SourceChips sources={message.sources} />
-            )}
-          </div>
-        )}
+        {/* Mode badge + sources — below the bubble */}
+        <div className="flex flex-col gap-2 pl-0.5">
+          {message.mode && <ModeBadge mode={message.mode} />}
+          {message.sources && message.sources.length > 0 && (
+            <SourceChips sources={message.sources} />
+          )}
+        </div>
       </div>
     </div>
   )
 }
+

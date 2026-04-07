@@ -9,44 +9,92 @@ interface ChatWindowProps {
   isLoading: boolean
 }
 
+// Quick-action suggestion chips shown on the empty state
+const SUGGESTIONS = [
+  { icon: '🌐', label: 'Search the web' },
+  { icon: '📄', label: 'Chat with a PDF' },
+  { icon: '⚡', label: 'Summarize content' },
+]
+
+function EmptyState() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center gap-8 py-16 animate-fade-in">
+      {/* Hero headline */}
+      <div className="text-center space-y-3 max-w-md">
+        <h1
+          className="text-3xl font-bold tracking-tight"
+          style={{
+            background: 'linear-gradient(135deg, #e6edf3 0%, #9f96ff 60%, #6c63ff 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          What do you want to know?
+        </h1>
+        <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
+          Search the web in real-time, or upload a PDF and ask questions about it.
+        </p>
+      </div>
+
+      {/* Suggestion chips */}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {SUGGESTIONS.map((s, i) => (
+          <div
+            key={s.label}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] text-sm text-[var(--color-text-muted)] cursor-default select-none animate-scale-in"
+            style={{ animationDelay: `${i * 60}ms` }}
+          >
+            <span>{s.icon}</span>
+            <span>{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom whenever messages change or loading state changes
+  // Auto-scroll to bottom whenever messages or loading state changes
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
   if (messages.length === 0 && !isLoading) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-        <p className="text-2xl font-semibold text-[var(--color-text-primary)]">
-          Slooze AI
-        </p>
-        <p className="text-sm text-[var(--color-text-muted)] max-w-sm">
-          Ask anything. Upload a PDF to chat with a document.
-        </p>
-      </div>
-    )
+    return <EmptyState />
   }
 
   return (
-    <div className="flex-1 overflow-y-auto py-6 space-y-4">
-      {messages.map(message => (
-        <MessageBubble key={message.id} message={message} />
+    <div className="flex-1 py-6 space-y-6">
+      {messages.map((message, idx) => (
+        <div
+          key={message.id}
+          className="animate-fade-in"
+          style={{ animationDelay: `${Math.min(idx * 30, 150)}ms` }}
+        >
+          <MessageBubble message={message} />
+        </div>
       ))}
 
       {/* Typing indicator while waiting for the first token */}
       {isLoading && (
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-[var(--color-surface-3)] flex items-center justify-center text-xs shrink-0">
-            AI
+        <div className="flex items-start gap-3 animate-fade-in">
+          {/* AI Avatar */}
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5"
+            style={{ background: 'linear-gradient(135deg, #6c63ff 0%, #9f96ff 100%)' }}
+          >
+            S
           </div>
-          <div className="bg-[var(--color-ai-bubble)] border border-[var(--color-border)] rounded-2xl rounded-tl-sm px-4 py-3">
-            <span className="inline-flex gap-1">
-              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full animate-bounce [animation-delay:300ms]" />
+
+          {/* Typing dots */}
+          <div className="bg-[var(--color-ai-bubble)] border border-[var(--color-border)] rounded-2xl rounded-tl-sm px-4 py-3.5">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-1" />
+              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-2" />
+              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-3" />
             </span>
           </div>
         </div>
@@ -56,3 +104,4 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
     </div>
   )
 }
+

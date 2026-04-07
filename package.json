@@ -3,17 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "shared:build": "pnpm --filter @slooze/shared build",
-    "shared:typecheck": "pnpm --filter @slooze/shared typecheck",
-    "backend:typecheck": "pnpm --filter backend typecheck",
-    "backend:build": "pnpm --filter backend build",
-    "frontend:typecheck": "pnpm --filter frontend typecheck",
-    "frontend:build": "pnpm --filter frontend build",
-    "typecheck": "pnpm shared:build && pnpm -r typecheck",
-    "kill:ports": "kill-port 3000 3001 || true",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm typecheck && pnpm build",
+    "dev": "pnpm kill:ports && concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
     "dev:frontend": "kill-port 3000 || true && pnpm --filter frontend dev",
     "dev:backend": "kill-port 3001 || true && pnpm --filter backend dev",
-    "dev": "pnpm kill:ports && concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\""
+    "kill:ports": "kill-port 3000 3001 || true"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
