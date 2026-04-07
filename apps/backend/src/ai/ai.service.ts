@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { generateText as aiGenerateText } from 'ai'
+import { generateText as aiGenerateText, streamText as aiStreamText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { AI_CONFIG } from './ai.config'
 import { Env } from '../env.validation'
@@ -32,9 +32,16 @@ export class AIService {
         return text
     }
 
-    // Streaming wired in Phase 4. Signature matches generateText for easy swap.
-    async *streamText(_system: string, _user: string): AsyncGenerator<string> {
-        throw new Error('AIService.streamText not yet implemented — wired in Phase 4')
+    async *streamText(system: string, user: string): AsyncGenerator<string> {
+        const result = aiStreamText({
+            model: this.openai(AI_CONFIG.chatModel),
+            system,
+            prompt: user,
+            maxOutputTokens: AI_CONFIG.maxOutputTokens,
+        })
+        for await (const chunk of result.textStream) {
+            yield chunk
+        }
     }
 
     async embed(_text: string): Promise<number[]> {

@@ -93,6 +93,14 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
     return <EmptyState />
   }
 
+  const lastMessage = messages[messages.length - 1]
+  // Show typing dots only while waiting for the first token (empty placeholder present)
+  const showTypingIndicator = isLoading && lastMessage?.role === 'assistant' && lastMessage.content === ''
+  // Show streaming cursor on the assistant message once tokens are flowing
+  const streamingMessageId = isLoading && lastMessage?.role === 'assistant' && lastMessage.content !== ''
+    ? lastMessage.id
+    : null
+
   return (
     <div className="flex-1 py-8 space-y-8">
       {messages.map((message, idx) => (
@@ -101,12 +109,15 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
           className="animate-fade-in"
           style={{ animationDelay: `${Math.min(idx * 30, 150)}ms` }}
         >
-          <MessageBubble message={message} />
+          <MessageBubble
+            message={message}
+            isStreaming={message.id === streamingMessageId}
+          />
         </div>
       ))}
 
-      {/* Typing indicator — no avatar, minimal dots pill (matches no-bubble AI style) */}
-      {isLoading && (
+      {/* Typing indicator — shown only before the first token arrives */}
+      {showTypingIndicator && (
         <div className="animate-fade-in">
           <span
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl"
