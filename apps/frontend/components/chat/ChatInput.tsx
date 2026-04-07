@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, type KeyboardEvent, type DragEvent } from 'react'
+import { Icons } from '@/components/ui/Icons'
 
 interface ChatInputProps {
   isLoading: boolean
@@ -81,6 +82,7 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
       <div className="px-4 pt-4 pb-2">
         <textarea
           ref={textareaRef}
+          autoFocus
           rows={1}
           value={value}
           onChange={handleChange}
@@ -112,9 +114,7 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {/* Paperclip icon */}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-            </svg>
+            <Icons.Paperclip className="w-4 h-4" />
           </button>
 
           <span className="text-[11px] text-[var(--color-text-subtle)] hidden sm:block">
@@ -138,9 +138,7 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
             <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             /* Arrow-up icon */
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
+            <Icons.ArrowUp className="w-4 h-4" />
           )}
         </button>
       </div>
