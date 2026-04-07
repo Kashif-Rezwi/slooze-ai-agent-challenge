@@ -84,11 +84,8 @@ export default function ChatPage() {
       {/* ── Pinned Composer Zone ────────────────────────────────────── */}
       <div className="shrink-0 sticky bottom-0 z-10 pb-6 px-5" style={GLASS_STYLE}>
         <div className="max-w-3xl mx-auto space-y-2">
-          <PdfSessionBanner filename={null} onClear={() => {}} />
+          <PdfSessionBanner filename={null} onClear={() => { }} />
           <ChatInput isLoading={isLoading} onSend={sendMessage} />
-          <p className="text-center text-[11px] text-[var(--color-text-subtle)]">
-            AI can make mistakes. Verify important information.
-          </p>
         </div>
       </div>
 
