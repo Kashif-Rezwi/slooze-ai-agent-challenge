@@ -1,23 +1,39 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { generateText as aiGenerateText } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
+import { AI_CONFIG } from './ai.config'
+import { Env } from '../env.validation'
 
 /**
  * Central abstraction over all AI SDK calls.
  * No other module imports from 'ai' or '@ai-sdk/openai' directly — they all go through here.
  * Swapping the provider means changing this file only.
- *
- * Stubs are in place for Phase 1. Real implementations are wired in:
- *   - generateText / streamText → Phase 2 (Challenge A)
- *   - embed / embedMany        → Phase 5 (Challenge B)
  */
 @Injectable()
 export class AIService {
-    async generateText(_prompt: string): Promise<string> {
-        throw new Error('AIService.generateText not yet implemented — wired in Phase 2')
+    private readonly openai: ReturnType<typeof createOpenAI>
+
+    constructor(private readonly config: ConfigService<Env, true>) {
+        this.openai = createOpenAI({
+            apiKey: this.config.get('OPENAI_API_KEY'),
+        })
     }
 
-    // Explicit return type annotation is required because without a yield
-    // TypeScript infers AsyncGenerator<never>. The throw is the entire body.
-    async *streamText(_prompt: string): AsyncGenerator<string> {
+    async generateText(system: string, user: string): Promise<string> {
+        // AI SDK v6: system is a top-level param, not part of the messages array.
+        // ModelMessage = UserModelMessage | AssistantModelMessage | ToolModelMessage — no system role.
+        const { text } = await aiGenerateText({
+            model: this.openai(AI_CONFIG.chatModel),
+            system,
+            prompt: user,
+            maxOutputTokens: AI_CONFIG.maxOutputTokens,
+        })
+        return text
+    }
+
+    // Streaming wired in Phase 4. Signature matches generateText for easy swap.
+    async *streamText(_system: string, _user: string): AsyncGenerator<string> {
         throw new Error('AIService.streamText not yet implemented — wired in Phase 4')
     }
 

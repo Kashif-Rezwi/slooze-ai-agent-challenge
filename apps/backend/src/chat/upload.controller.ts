@@ -7,7 +7,7 @@ import {
     BadRequestException,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { memoryStorage } from 'multer'
+import multer from 'multer'
 import { Response } from 'express'
 
 @Controller('upload')
@@ -24,16 +24,17 @@ export class UploadController {
     @Post()
     @UseInterceptors(
         FileInterceptor('file', {
-            storage: memoryStorage(),
+            storage: multer.memoryStorage(),
             limits: { fileSize: 20 * 1024 * 1024 },
             fileFilter: (_req, file, cb) => {
                 if (file.mimetype !== 'application/pdf') {
+                    // FileFilterCallback overloads: cb(error) OR cb(null, accept)
                     cb(new BadRequestException('Only PDF files are accepted'), false)
                 } else {
                     cb(null, true)
                 }
             },
-        })
+        }),
     )
     upload(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
         if (!file) {

@@ -11,14 +11,13 @@ export class ChatController {
 
     /**
      * POST /api/chat
-     * Accepts a chat message (plain query or PDF question) and returns a response.
-     * Streaming (SSE) is wired in Phase 4. For now returns a stub 200.
+     * Phase 2: returns plain JSON { answer, sources, mode }.
+     * Phase 4: switches to streaming SSE response.
      */
     @Post()
     @UsePipes(new ZodValidationPipe(ChatRequestSchema))
-    chat(@Body() _dto: ChatRequestDto, @Res() res: Response) {
-        // Phase 2: delegate to ChatService and return non-streaming response
-        // Phase 4: switch to streaming SSE response
-        res.json({ message: 'stub — Phase 2 coming' })
+    async chat(@Body() dto: ChatRequestDto, @Res() res: Response) {
+        const result = await this.chatService.handle(dto)
+        res.json(result)
     }
 }

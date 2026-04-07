@@ -1,7 +1,7 @@
 export const AI_CONFIG = {
     chatModel: 'gpt-4o-mini',
     embeddingModel: 'text-embedding-3-small',
-    maxTokens: 1024,
+    maxOutputTokens: 1024,
     systemPrompts: {
         webSearch: `You are a helpful assistant that answers questions using web search results.
 Be concise and factual. Always ground your answer in the provided sources.
