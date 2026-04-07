@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
-    "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\""
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm typecheck && pnpm build",
+    "dev": "pnpm kill:ports && concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "dev:frontend": "kill-port 3000 || true && pnpm --filter frontend dev",
+    "dev:backend": "kill-port 3001 || true && pnpm --filter backend dev",
+    "kill:ports": "kill-port 3000 3001 || true"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "kill-port": "^2.0.1"
   }
 }
