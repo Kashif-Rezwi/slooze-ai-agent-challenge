@@ -1,6 +1,7 @@
 import type { ChatMessage } from '@/hooks/useChat'
 import ModeBadge from './ModeBadge'
 import SourceChips from './SourceChips'
+import MarkdownContent from './MarkdownContent'
 
 interface MessageBubbleProps {
   message: ChatMessage
@@ -43,11 +44,10 @@ export default function MessageBubble({ message, isStreaming }: MessageBubblePro
       <div className="flex-1 min-w-0 space-y-2">
         {/* Bubble */}
         <div
-          className="prose px-4 py-3.5 rounded-2xl rounded-tl-sm bg-[var(--color-ai-bubble)] border border-[var(--color-border)]"
+          className="px-4 py-3.5 rounded-2xl rounded-tl-sm bg-[var(--color-ai-bubble)] border border-[var(--color-border)]"
           style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
-          {...(isStreaming ? { 'data-streaming': '' } : {})}
         >
-          {message.content}
+          <MarkdownContent content={message.content} isStreaming={isStreaming} />
         </div>
 
         {/* Mode badge + sources — below the bubble */}
