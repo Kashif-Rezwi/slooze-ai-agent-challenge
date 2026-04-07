@@ -1,0 +1,22 @@
+/* Tailwind CSS v4 — single import replaces the three v3 directives */
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0f0f0f;
+  --color-surface-2: #1a1a1a;
+  --color-surface-3: #242424;
+  --color-border: #2e2e2e;
+  --color-text-primary: #f5f5f5;
+  --color-text-muted: #888888;
+  --color-accent: #6c63ff;
+  --color-accent-hover: #7c72ff;
+  --color-user-bubble: #6c63ff;
+  --color-ai-bubble: #1e1e1e;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
