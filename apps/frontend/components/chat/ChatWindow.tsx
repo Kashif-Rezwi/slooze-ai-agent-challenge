@@ -67,7 +67,7 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
   }
 
   return (
-    <div className="flex-1 py-6 space-y-6">
+    <div className="flex-1 py-8 space-y-8">
       {messages.map((message, idx) => (
         <div
           key={message.id}
@@ -78,25 +78,17 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
         </div>
       ))}
 
-      {/* Typing indicator while waiting for the first token */}
+      {/* Typing indicator — no avatar, minimal dots pill (matches no-bubble AI style) */}
       {isLoading && (
-        <div className="flex items-start gap-3 animate-fade-in">
-          {/* AI Avatar */}
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5"
-            style={{ background: 'linear-gradient(135deg, #6c63ff 0%, #9f96ff 100%)' }}
+        <div className="animate-fade-in">
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.04)' }}
           >
-            S
-          </div>
-
-          {/* Typing dots */}
-          <div className="bg-[var(--color-ai-bubble)] border border-[var(--color-border)] rounded-2xl rounded-tl-sm px-4 py-3.5">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-1" />
-              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-2" />
-              <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-3" />
-            </span>
-          </div>
+            <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-1" />
+            <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-2" />
+            <span className="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full dot-3" />
+          </span>
         </div>
       )}
 
@@ -104,4 +96,5 @@ export default function ChatWindow({ messages, isLoading }: ChatWindowProps) {
     </div>
   )
 }
+
 
