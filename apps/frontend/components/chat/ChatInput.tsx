@@ -5,12 +5,12 @@ import { Icons } from '@/components/ui/Icons'
 
 interface ChatInputProps {
   isLoading: boolean
+  isUploading?: boolean
   onSend: (text: string) => void
-  /** Phase 6 — called when the user picks a PDF file. Stub for now. */
   onPdfSelect?: (file: File) => void
 }
 
-export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputProps) {
+export default function ChatInput({ isLoading, isUploading = false, onSend, onPdfSelect }: ChatInputProps) {
   const [value, setValue] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -108,13 +108,15 @@ export default function ChatInput({ isLoading, onSend, onPdfSelect }: ChatInputP
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
-            title="Upload PDF"
-            aria-label="Upload PDF"
+            disabled={isLoading || isUploading}
+            title={isUploading ? 'Uploading PDF…' : 'Upload PDF'}
+            aria-label={isUploading ? 'Uploading PDF…' : 'Upload PDF'}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            {/* Paperclip icon */}
-            <Icons.Paperclip className="w-4 h-4" />
+            {isUploading
+              ? <span className="w-3.5 h-3.5 border-2 border-[var(--color-text-muted)]/30 border-t-[var(--color-text-muted)] rounded-full animate-spin" />
+              : <Icons.Paperclip className="w-4 h-4" />
+            }
           </button>
 
           <span className="text-[11px] text-[var(--color-text-subtle)] hidden sm:block">

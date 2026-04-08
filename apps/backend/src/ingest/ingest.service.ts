@@ -59,7 +59,7 @@ export class IngestService {
         const embeddings = await this.ai.embedMany(chunks)
 
         // 4. Store in the vector store with documentId + chunkIndex metadata
-        const metadatas = chunks.map((_, i) => ({ documentId, chunkIndex: i }))
+        const metadatas = chunks.map((_, i) => ({ documentId, chunkIndex: i, filename }))
 
         this.vectorStore.addChunks({ embeddings, documents: chunks, metadatas })
 

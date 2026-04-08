@@ -5,12 +5,13 @@ interface StoredChunk {
     document: string
     documentId: string
     chunkIndex: number
+    filename: string
 }
 
 export interface AddChunksArgs {
     embeddings: number[][]
     documents: string[]
-    metadatas: Array<{ documentId: string; chunkIndex: number }>
+    metadatas: Array<{ documentId: string; chunkIndex: number; filename: string }>
 }
 
 export interface QueryChunksArgs {
@@ -21,7 +22,7 @@ export interface QueryChunksArgs {
 
 export interface QueryChunksResult {
     documents: string[]
-    metadatas: Array<{ documentId: string; chunkIndex: number }>
+    metadatas: Array<{ documentId: string; chunkIndex: number; filename: string }>
 }
 
 /** Dot product of two equal-length vectors. */
@@ -61,6 +62,7 @@ export class VectorStoreService {
                 document: documents[i],
                 documentId: metadatas[i].documentId,
                 chunkIndex: metadatas[i].chunkIndex,
+                filename: metadatas[i].filename,
             })
         }
     }
@@ -77,6 +79,7 @@ export class VectorStoreService {
             metadatas: scored.map(s => ({
                 documentId: s.chunk.documentId,
                 chunkIndex: s.chunk.chunkIndex,
+                filename: s.chunk.filename,
             })),
         }
     }

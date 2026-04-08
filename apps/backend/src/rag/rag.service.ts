@@ -47,7 +47,7 @@ export class RagService {
         // 3. Build context and stream a grounded answer
         const context = documents.map((doc, i) => `[${i + 1}] ${doc}`).join('\n\n')
         const userPrompt = `Context from document:\n\n${context}\n\nQuestion: ${query}`
-        const sources = metadatas.map(m => `Chunk ${m.chunkIndex + 1}`)
+        const sources = metadatas.length > 0 ? [metadatas[0].filename] : []
 
         return {
             stream: this.ai.streamText(AI_CONFIG.systemPrompts.rag, userPrompt),
