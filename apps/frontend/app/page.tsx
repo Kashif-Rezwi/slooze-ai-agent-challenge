@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { Mode } from '@slooze/shared'
 import { useChat } from '@/hooks/useChat'
 import { uploadPdf } from '@/lib/api'
 import ChatWindow from '@/components/chat/ChatWindow'
@@ -16,12 +17,23 @@ export interface PdfSession {
 export default function ChatPage() {
   const { messages, isLoading, error, sendMessage } = useChat()
 
-  // Multi-PDF library: all uploads live here for the duration of the session.
-  // activePdfId points to whichever one the user is currently querying.
+  // Global mode — drives which pipeline the backend uses and which UI controls are visible.
+  const [mode, setMode] = useState<Mode>('web')
+
+  // Multi-PDF library: all uploads live here for the session regardless of mode.
+  // activePdfId points to whichever doc is currently selected in PDF mode.
   const [pdfLibrary, setPdfLibrary] = useState<PdfSession[]>([])
   const [activePdfId, setActivePdfId] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+
+  function handleModeChange(newMode: Mode) {
+    setMode(newMode)
+    // Switching to PDF with uploads but no active selection → restore the last uploaded doc
+    if (newMode === 'pdf' && pdfLibrary.length > 0 && activePdfId === null) {
+      setActivePdfId(pdfLibrary[pdfLibrary.length - 1].documentId)
+    }
+  }
 
   async function handlePdfSelect(file: File) {
     setUploadError(null)
@@ -44,8 +56,7 @@ export default function ChatPage() {
   function handleRemovePdf(id: string) {
     setPdfLibrary(prev => {
       const next = prev.filter(p => p.documentId !== id)
-      // If the removed doc was active, auto-activate the most recently uploaded
-      // remaining one; fall back to null if the library is now empty.
+      // If the removed doc was active, auto-activate the most recently uploaded remaining one.
       if (activePdfId === id) {
         setActivePdfId(next.length > 0 ? next[next.length - 1].documentId : null)
       }
@@ -53,6 +64,9 @@ export default function ChatPage() {
     })
     setUploadError(null)
   }
+
+  // In web mode we never send a documentId — uploads are preserved but paused.
+  const effectiveDocumentId = mode === 'pdf' ? activePdfId : null
 
   const activeError = uploadError ?? error
 
@@ -62,7 +76,7 @@ export default function ChatPage() {
       {/* ── Sticky Header ──────────────────────────────────────────── */}
       <Header />
 
-      {/* ── Error Banner (chat or upload failures) ─────────────────── */}
+      {/* ── Error Banner ───────────────────────────────────────────── */}
       {activeError && (
         <div className="bg-red-500/10 border-b border-red-500/20 text-red-400 text-xs text-center py-1.5 px-4 animate-slide-down">
           {activeError}
@@ -78,14 +92,18 @@ export default function ChatPage() {
           <PdfSessionBanner
             library={pdfLibrary}
             activePdfId={activePdfId}
+            isPaused={mode === 'web'}
             onActivate={handleActivatePdf}
             onRemove={handleRemovePdf}
           />
           <ChatInput
             isLoading={isLoading}
             isUploading={isUploading}
-            onSend={(text) => sendMessage(text, activePdfId)}
-            onPdfSelect={handlePdfSelect}
+            mode={mode}
+            onModeChange={handleModeChange}
+            onSend={(text) => sendMessage(text, effectiveDocumentId)}
+            // Only pass the upload handler in PDF mode — this also disables drag-drop in web mode.
+            onPdfSelect={mode === 'pdf' ? handlePdfSelect : undefined}
           />
         </div>
       </div>
