@@ -1,3 +1,4 @@
+import React from 'react'
 import type { PdfSession } from '@/app/page'
 
 interface PdfSessionBannerProps {
@@ -8,18 +9,18 @@ interface PdfSessionBannerProps {
 }
 
 /** Compact document icon used inside each PDF pill. */
-function DocIcon({ className }: { className?: string }) {
+function DocIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+    <svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" {...props}>
       <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
     </svg>
   )
 }
 
 /** Checkmark icon shown on the active pill. */
-function CheckIcon({ className }: { className?: string }) {
+function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} aria-hidden="true">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} aria-hidden="true" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   )
@@ -42,7 +43,6 @@ export default function PdfSessionBanner({
   return (
     <div
       className="flex items-center gap-2 overflow-x-auto py-1 animate-slide-down"
-      style={{ scrollbarWidth: 'none' }}
       role="group"
       aria-label="Uploaded PDF documents"
     >

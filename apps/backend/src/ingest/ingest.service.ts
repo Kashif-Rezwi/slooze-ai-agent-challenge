@@ -9,7 +9,6 @@ import { Env } from '../env.validation'
 export interface IngestResult {
     documentId: string
     filename: string
-    chunkCount: number
 }
 
 /**
@@ -50,7 +49,7 @@ export class IngestService {
         // 2. Chunk
         const chunks = chunkText(cleanText, this.chunkSize, this.chunkOverlap)
         if (chunks.length === 0) {
-            return { documentId: uuidv4(), filename, chunkCount: 0 }
+            return { documentId: uuidv4(), filename }
         }
 
         const documentId = uuidv4()
@@ -65,6 +64,6 @@ export class IngestService {
 
         this.logger.log(`Ingested "${filename}" → ${chunks.length} chunks (documentId: ${documentId})`)
 
-        return { documentId, filename, chunkCount: chunks.length }
+        return { documentId, filename }
     }
 }

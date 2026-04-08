@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
+import type { ReactNode } from 'react'
 import { Icons } from '@/components/ui/Icons'
 
-const SUGGESTIONS: { icon: React.ReactNode; label: string }[] = [
+const SUGGESTIONS: { icon: ReactNode; label: string }[] = [
   { icon: <Icons.Globe className="w-4 h-4" />, label: 'Search the web' },
   { icon: <Icons.Document className="w-4 h-4" />, label: 'Chat with a PDF' },
   { icon: <Icons.Bolt className="w-4 h-4" />, label: 'Summarize content' },

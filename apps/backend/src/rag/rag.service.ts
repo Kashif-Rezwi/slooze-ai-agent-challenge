@@ -4,12 +4,7 @@ import { AIService } from '../ai/ai.service'
 import { AI_CONFIG } from '../ai/ai.config'
 import { VectorStoreService } from '../ingest/vector-store.service'
 import { Env } from '../env.validation'
-
-export interface RagStream {
-    stream: AsyncGenerator<string>
-    sources: string[]
-    mode: 'pdf'
-}
+import type { ChatStream } from '../chat/chat.service'
 
 @Injectable()
 export class RagService {
@@ -23,7 +18,7 @@ export class RagService {
         this.topK = this.config.get('TOP_K_RESULTS')
     }
 
-    async streamAnswer(documentId: string, query: string): Promise<RagStream> {
+    async streamAnswer(documentId: string, query: string): Promise<ChatStream> {
         // 1. Embed the user's query
         const queryEmbedding = await this.ai.embed(query)
 
@@ -44,7 +39,9 @@ export class RagService {
             }
         }
 
-        // 3. Build context and stream a grounded answer
+        // 3. Build context and stream a grounded answer.
+        // All retrieved chunks belong to the same document, so a single filename
+        // is the correct and complete source attribution.
         const context = documents.map((doc, i) => `[${i + 1}] ${doc}`).join('\n\n')
         const userPrompt = `Context from document:\n\n${context}\n\nQuestion: ${query}`
         const sources = metadatas.length > 0 ? [metadatas[0].filename] : []

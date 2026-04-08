@@ -8,9 +8,14 @@ import {
 } from '@nestjs/common'
 import { Response } from 'express'
 
+/**
+ * Catches all unhandled exceptions and returns a consistent JSON error shape.
+ * Named "Global" because @Catch() (no args) intercepts everything — not just
+ * HttpExceptions. HttpExceptions get their status code; anything else gets 500.
+ */
 @Catch()
-export class HttpExceptionFilter implements ExceptionFilter {
-    private readonly logger = new Logger(HttpExceptionFilter.name)
+export class GlobalExceptionFilter implements ExceptionFilter {
+    private readonly logger = new Logger(GlobalExceptionFilter.name)
 
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp()

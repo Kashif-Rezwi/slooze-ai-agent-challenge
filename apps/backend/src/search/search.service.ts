@@ -2,12 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { AIService } from '../ai/ai.service'
 import { AI_CONFIG } from '../ai/ai.config'
 import { TavilyService, TavilyResult } from './tavily.service'
-
-export interface SearchStream {
-    stream: AsyncGenerator<string>
-    sources: string[]
-    mode: 'web'
-}
+import type { ChatStream } from '../chat/chat.service'
 
 @Injectable()
 export class SearchService {
@@ -16,7 +11,7 @@ export class SearchService {
         private readonly ai: AIService,
     ) {}
 
-    async streamSearch(query: string): Promise<SearchStream> {
+    async streamSearch(query: string): Promise<ChatStream> {
         const results = await this.tavily.search(query)
 
         if (results.length === 0) {

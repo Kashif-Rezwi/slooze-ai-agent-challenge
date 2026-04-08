@@ -1,14 +1,12 @@
 import {
     Controller,
     Post,
-    Res,
     UseInterceptors,
     UploadedFile,
     BadRequestException,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import multer from 'multer'
-import { Response } from 'express'
 import { IngestService } from '../ingest/ingest.service'
 
 @Controller('upload')
@@ -39,16 +37,11 @@ export class UploadController {
             },
         }),
     )
-    async upload(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+    async upload(@UploadedFile() file: Express.Multer.File) {
         if (!file) {
             throw new BadRequestException('No file uploaded')
         }
 
-        const result = await this.ingestService.ingest(file.buffer, file.originalname)
-
-        res.json({
-            documentId: result.documentId,
-            filename: result.filename,
-        })
+        return this.ingestService.ingest(file.buffer, file.originalname)
     }
 }
