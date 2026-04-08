@@ -26,6 +26,13 @@
   --color-accent-muted: rgba(108, 99, 255, 0.15);
 }
 
+/* ─── Glass-morphism surface ─────────────────────────────────────────────── */
+.glass {
+  background: rgba(13, 17, 23, 0.80);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 /* ─── Base Reset ──────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

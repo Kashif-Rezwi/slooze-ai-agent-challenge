@@ -9,13 +9,17 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import multer from 'multer'
 import { Response } from 'express'
+import { IngestService } from '../ingest/ingest.service'
 
 @Controller('upload')
 export class UploadController {
+    constructor(private readonly ingestService: IngestService) {}
+
     /**
      * POST /api/upload
      * Accepts a PDF file (multipart/form-data, field name "file").
-     * IngestService wired in Phase 5. For now returns a stub 200.
+     * Parses, chunks, embeds, and stores it in the in-memory vector store.
+     * Returns { documentId, filename } on success.
      *
      * Constraints (enforced by Multer):
      *   - MIME type: application/pdf only
@@ -28,7 +32,6 @@ export class UploadController {
             limits: { fileSize: 20 * 1024 * 1024 },
             fileFilter: (_req, file, cb) => {
                 if (file.mimetype !== 'application/pdf') {
-                    // FileFilterCallback overloads: cb(error) OR cb(null, accept)
                     cb(new BadRequestException('Only PDF files are accepted'), false)
                 } else {
                     cb(null, true)
@@ -36,11 +39,16 @@ export class UploadController {
             },
         }),
     )
-    upload(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+    async upload(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
         if (!file) {
             throw new BadRequestException('No file uploaded')
         }
-        // Phase 5: delegate to IngestService → return { documentId, filename }
-        res.json({ message: 'stub — Phase 5 coming', filename: file.originalname })
+
+        const result = await this.ingestService.ingest(file.buffer, file.originalname)
+
+        res.json({
+            documentId: result.documentId,
+            filename: result.filename,
+        })
     }
 }

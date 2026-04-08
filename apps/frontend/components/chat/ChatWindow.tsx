@@ -10,7 +10,6 @@ interface ChatWindowProps {
   isLoading: boolean
 }
 
-
 /** Distance from the scroll bottom (px) within which we treat user as "at bottom" */
 const AT_BOTTOM_THRESHOLD = 80
 

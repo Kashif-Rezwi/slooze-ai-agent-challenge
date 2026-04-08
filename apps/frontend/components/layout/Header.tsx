@@ -1,18 +1,9 @@
-import React from 'react'
 import { Icons } from '@/components/ui/Icons'
-
-/** Shared glass-morphism style applied to the header. */
-const GLASS_STYLE: React.CSSProperties = {
-  background: 'rgba(13, 17, 23, 0.80)',
-  backdropFilter: 'blur(16px)',
-  WebkitBackdropFilter: 'blur(16px)',
-}
 
 export default function Header() {
   return (
     <header
-      className="shrink-0 h-14 flex items-center sticky top-0 z-20 border-b border-[var(--color-border)]/60"
-      style={GLASS_STYLE}
+      className="glass shrink-0 h-14 flex items-center sticky top-0 z-20 border-b border-[var(--color-border)]/60"
     >
       <div className="max-w-3xl mx-auto px-5 w-full flex items-center gap-3">
         {/* Logo mark — gradient container with spark SVG */}
