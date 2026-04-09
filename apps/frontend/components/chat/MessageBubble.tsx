@@ -35,8 +35,8 @@ export default function MessageBubble({ message, isStreaming }: MessageBubblePro
       {/* The response text itself — no card, no border, full width */}
       <MarkdownContent content={message.content} isStreaming={isStreaming} />
 
-      {/* Compact metadata row below the text */}
-      {(message.mode || (message.sources && message.sources.length > 0)) && (
+      {/* Compact metadata row — only shown once streaming is complete */}
+      {!isStreaming && (message.mode || (message.sources && message.sources.length > 0)) && (
         <div className="flex flex-col gap-2">
           {message.mode && <ModeBadge mode={message.mode} />}
           {message.sources && message.sources.length > 0 && (

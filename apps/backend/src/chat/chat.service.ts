@@ -1,32 +1,42 @@
-import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common'
-import { ChatResponse } from '@slooze/shared'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { SearchService } from '../search/search.service'
+import { RagService } from '../rag/rag.service'
 import { ChatRequestDto } from './dto/chat.dto'
+import type { Mode } from '@slooze/shared'
+
+/**
+ * Shared return shape for both pipeline branches.
+ * `stream` emits AI token strings; `sources` are URL strings (web) or a
+ * filename string (PDF); `mode` identifies which pipeline answered.
+ */
+export interface ChatStream {
+    stream: AsyncGenerator<string>
+    sources: string[]
+    mode: Mode
+}
 
 /**
  * Routes incoming chat requests to the correct pipeline:
- *   documentId present → RagService (Challenge B)  — wired in Phase 5
+ *   documentId present → RagService  (Challenge B)
  *   plain text only    → SearchService (Challenge A)
  */
 @Injectable()
 export class ChatService {
-    constructor(private readonly searchService: SearchService) {}
+    constructor(
+        private readonly searchService: SearchService,
+        private readonly ragService: RagService,
+    ) {}
 
-    async handle(dto: ChatRequestDto): Promise<ChatResponse> {
-        // useChat sends messages[], direct calls send message string.
-        // Extract the current query from whichever is present.
+    async streamHandle(dto: ChatRequestDto): Promise<ChatStream> {
         const query = dto.message ?? dto.messages?.at(-1)?.content
-
         if (!query?.trim()) {
             throw new BadRequestException('No message content found in request')
         }
 
         if (dto.documentId) {
-            throw new ServiceUnavailableException(
-                'PDF Q&A not yet implemented — coming in Phase 5'
-            )
+            return this.ragService.streamAnswer(dto.documentId, query)
         }
 
-        return this.searchService.search(query)
+        return this.searchService.streamSearch(query)
     }
 }

@@ -1,12 +1,7 @@
 /**
- * MarkdownContent
- * ───────────────
  * Renders AI response text as styled Markdown.
  * Uses react-markdown + rehype-highlight for syntax-highlighted code blocks.
  * Styled via the .prose class defined in globals.css — no inline styles.
- *
- * Adopted from: better-dev-ui & code-review-agent (both use react-markdown).
- * Monaco Editor is intentionally NOT used here — it's for code editing, not display.
  */
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'

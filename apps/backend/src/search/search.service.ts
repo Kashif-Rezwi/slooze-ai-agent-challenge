@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { AIService } from '../ai/ai.service'
 import { AI_CONFIG } from '../ai/ai.config'
 import { TavilyService, TavilyResult } from './tavily.service'
-import { ChatResponse } from '@slooze/shared'
+import type { ChatStream } from '../chat/chat.service'
 
 @Injectable()
 export class SearchService {
@@ -11,22 +11,21 @@ export class SearchService {
         private readonly ai: AIService,
     ) {}
 
-    async search(query: string): Promise<ChatResponse> {
+    async streamSearch(query: string): Promise<ChatStream> {
         const results = await this.tavily.search(query)
 
         if (results.length === 0) {
             return {
-                answer: "I couldn't find relevant web results for that query. Please try rephrasing.",
+                stream: (async function* () {
+                    yield "I couldn't find relevant web results for that query. Please try rephrasing."
+                })(),
                 sources: [],
                 mode: 'web',
             }
         }
 
-        const user = this.buildUserPrompt(query, results)
-        const answer = await this.ai.generateText(AI_CONFIG.systemPrompts.webSearch, user)
-
         return {
-            answer,
+            stream: this.ai.streamText(AI_CONFIG.systemPrompts.webSearch, this.buildUserPrompt(query, results)),
             sources: results.map(r => r.url),
             mode: 'web',
         }

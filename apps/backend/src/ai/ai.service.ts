@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { generateText as aiGenerateText } from 'ai'
+import {
+    streamText as aiStreamText,
+    embed as aiEmbed,
+    embedMany as aiEmbedMany,
+} from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { AI_CONFIG } from './ai.config'
 import { Env } from '../env.validation'
@@ -20,28 +24,31 @@ export class AIService {
         })
     }
 
-    async generateText(system: string, user: string): Promise<string> {
-        // AI SDK v6: system is a top-level param, not part of the messages array.
-        // ModelMessage = UserModelMessage | AssistantModelMessage | ToolModelMessage — no system role.
-        const { text } = await aiGenerateText({
+    async *streamText(system: string, user: string): AsyncGenerator<string> {
+        const result = aiStreamText({
             model: this.openai(AI_CONFIG.chatModel),
             system,
             prompt: user,
             maxOutputTokens: AI_CONFIG.maxOutputTokens,
         })
-        return text
+        for await (const chunk of result.textStream) {
+            yield chunk
+        }
     }
 
-    // Streaming wired in Phase 4. Signature matches generateText for easy swap.
-    async *streamText(_system: string, _user: string): AsyncGenerator<string> {
-        throw new Error('AIService.streamText not yet implemented — wired in Phase 4')
+    async embed(text: string): Promise<number[]> {
+        const { embedding } = await aiEmbed({
+            model: this.openai.embedding(AI_CONFIG.embeddingModel),
+            value: text,
+        })
+        return embedding
     }
 
-    async embed(_text: string): Promise<number[]> {
-        throw new Error('AIService.embed not yet implemented — wired in Phase 5')
-    }
-
-    async embedMany(_texts: string[]): Promise<number[][]> {
-        throw new Error('AIService.embedMany not yet implemented — wired in Phase 5')
+    async embedMany(texts: string[]): Promise<number[][]> {
+        const { embeddings } = await aiEmbedMany({
+            model: this.openai.embedding(AI_CONFIG.embeddingModel),
+            values: texts,
+        })
+        return embeddings
     }
 }

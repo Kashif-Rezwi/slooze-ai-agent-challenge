@@ -19,9 +19,11 @@ interface TavilyApiResponse {
 @Injectable()
 export class TavilyService {
     private readonly apiKey: string
+    private readonly maxResults: number
 
     constructor(private readonly config: ConfigService<Env, true>) {
         this.apiKey = this.config.get('TAVILY_API_KEY')
+        this.maxResults = this.config.get('TOP_K_RESULTS')
     }
 
     async search(query: string): Promise<TavilyResult[]> {
@@ -33,7 +35,7 @@ export class TavilyService {
                 body: JSON.stringify({
                     api_key: this.apiKey,
                     query,
-                    max_results: 5,
+                    max_results: this.maxResults,
                     search_depth: 'basic',
                 }),
             })
