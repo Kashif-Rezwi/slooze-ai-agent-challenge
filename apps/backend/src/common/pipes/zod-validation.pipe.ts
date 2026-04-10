@@ -1,12 +1,7 @@
 import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common'
 import { z } from 'zod'
 
-/**
- * Validates a request body against a Zod schema.
- * Usage: @UsePipes(new ZodValidationPipe(MySchema))
- *
- * z.ZodType is the correct base type in Zod v4 (ZodTypeAny was deprecated).
- */
+/** Validates a request body against a Zod schema. Usage: @UsePipes(new ZodValidationPipe(MySchema)) */
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
     constructor(private readonly schema: z.ZodType) {}

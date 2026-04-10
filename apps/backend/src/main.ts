@@ -8,14 +8,9 @@ async function bootstrap() {
     const logger = new Logger('Bootstrap')
 
     app.setGlobalPrefix('api')
-
-    // Enables graceful shutdown — NestJS flushes in-flight requests and fires
-    // OnModuleDestroy hooks before the process exits on SIGTERM / SIGINT.
     app.enableShutdownHooks()
 
-    // NOTE: NestFactory.create() runs before ConfigModule initialises, so
-    // ConfigService is not yet available here. Reading process.env directly
-    // is intentional. The default matches env.validation.ts's FRONTEND_URL default.
+    // ConfigService is not yet available at this point — process.env is intentional.
     app.enableCors({
         origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
         methods: ['GET', 'POST'],

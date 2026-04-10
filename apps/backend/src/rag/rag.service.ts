@@ -19,10 +19,8 @@ export class RagService {
     }
 
     async streamAnswer(documentId: string, query: string): Promise<ChatStream> {
-        // 1. Embed the user's query
         const queryEmbedding = await this.ai.embed(query)
 
-        // 2. Retrieve the nearest chunks for this specific document
         const { documents, metadatas } = await this.vectorStore.queryChunks({
             embedding: queryEmbedding,
             nResults: this.topK,
@@ -39,12 +37,9 @@ export class RagService {
             }
         }
 
-        // 3. Build context and stream a grounded answer.
-        // All retrieved chunks belong to the same document, so a single filename
-        // is the correct and complete source attribution.
         const context = documents.map((doc, i) => `[${i + 1}] ${doc}`).join('\n\n')
         const userPrompt = `Context from document:\n\n${context}\n\nQuestion: ${query}`
-        const sources = metadatas.length > 0 ? [metadatas[0].filename] : []
+        const sources = metadatas.length > 0 ? [metadatas[0].filename] : [] // all chunks share one filename
 
         return {
             stream: this.ai.streamText(AI_CONFIG.systemPrompts.rag, userPrompt),

@@ -9,32 +9,18 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { AI_CONFIG } from './ai.config'
 import { Env } from '../env.validation'
 
-/**
- * Maximum texts sent to the embedding API in one request.
- * Guards against hitting OpenAI's per-request item/token limits on large PDFs.
- */
+/** Max texts per embedding request — avoids hitting OpenAI's per-request limits. */
 const EMBEDDING_BATCH_SIZE = 100
 
-/**
- * Central abstraction over all AI SDK calls.
- * No other module imports from 'ai' or '@ai-sdk/openai' directly — they all go through here.
- * Swapping the provider means changing this file only.
- */
+/** Single point of contact for all AI SDK calls — swap the provider here only. */
 @Injectable()
 export class AIService {
     private readonly openai: ReturnType<typeof createOpenAI>
 
     constructor(private readonly config: ConfigService<Env, true>) {
-        this.openai = createOpenAI({
-            apiKey: this.config.get('OPENAI_API_KEY'),
-        })
+        this.openai = createOpenAI({ apiKey: this.config.get('OPENAI_API_KEY') })
     }
 
-    /**
-     * Returns the SDK's AsyncIterable<string> token stream directly.
-     * No generator wrapper needed — AsyncIterable is sufficient for `for await`.
-     * Runtime streaming errors bubble to ChatController which sends an SSE error event.
-     */
     streamText(system: string, user: string): AsyncIterable<string> {
         try {
             const result = aiStreamText({
@@ -65,10 +51,7 @@ export class AIService {
         }
     }
 
-    /**
-     * Embeds texts in batches of EMBEDDING_BATCH_SIZE to avoid hitting
-     * the OpenAI API's per-request token/item limits on large documents.
-     */
+    /** Sends texts in batches to stay within OpenAI's per-request limits. */
     async embedMany(texts: string[]): Promise<number[][]> {
         const results: number[][] = []
 

@@ -4,11 +4,7 @@ import { AI_CONFIG } from '../ai/ai.config'
 import { TavilyService, TavilyResult } from './tavily.service'
 import type { ChatStream } from '../common/types'
 
-/**
- * Pure utility — formats Tavily results into the user prompt sent to the LLM.
- * Extracted as a module-level function (not a class method) because it has no
- * dependency on service state, making it trivially unit-testable in isolation.
- */
+/** Formats Tavily results into the LLM user prompt. */
 function buildUserPrompt(query: string, results: TavilyResult[]): string {
     const formatted = results
         .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet}`)

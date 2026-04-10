@@ -9,11 +9,7 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import multer from 'multer'
 import { IngestService } from '../ingest/ingest.service'
 
-/**
- * Strips characters that are unsafe in filenames and caps length at 255 bytes.
- * Keeps alphanumerics, spaces, dots, hyphens, and underscores.
- * Falls back to 'upload.pdf' if the result is empty after stripping.
- */
+/** Strips unsafe characters and caps filename at 255 chars. */
 function sanitiseFilename(name: string): string {
     return (
         name
@@ -28,14 +24,8 @@ export class UploadController {
     constructor(private readonly ingestService: IngestService) {}
 
     /**
-     * POST /api/upload
-     * Accepts a PDF file (multipart/form-data, field name "file").
-     * Parses, chunks, embeds, and stores it in the ChromaDB Cloud vector store.
+     * POST /api/upload — accepts a PDF (field: "file", max 20 MB).
      * Returns { documentId, filename } on success.
-     *
-     * Constraints (enforced by Multer):
-     *   - MIME type: application/pdf only
-     *   - Max size: 20 MB
      */
     @Post()
     @UseInterceptors(
@@ -52,16 +42,13 @@ export class UploadController {
         }),
     )
     async upload(@UploadedFile() file: Express.Multer.File) {
-        // `file` is undefined when no file was sent OR when Multer's fileFilter
-        // rejected it (e.g. wrong MIME type). Both cases are handled here since
-        // the fileFilter error is not always propagated by the FileInterceptor.
+        // Catches both missing-file and Multer MIME-rejection (fileFilter error isn't always propagated).
         if (!file) {
             throw new BadRequestException(
                 'No valid PDF file received. Ensure the field name is "file" and the file is a valid PDF (application/pdf).',
             )
         }
 
-        const filename = sanitiseFilename(file.originalname)
-        return this.ingestService.ingest(file.buffer, filename)
+        return this.ingestService.ingest(file.buffer, sanitiseFilename(file.originalname))
     }
 }

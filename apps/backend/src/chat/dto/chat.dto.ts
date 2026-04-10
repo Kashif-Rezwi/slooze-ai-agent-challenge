@@ -1,7 +1,4 @@
 import { ChatRequest } from '@slooze/shared'
 
-/**
- * DTO type is inferred from the shared Zod schema.
- * Validation is applied at the controller via ZodValidationPipe(ChatRequestSchema).
- */
+// Type is inferred from the shared Zod schema; validation is applied via ZodValidationPipe.
 export type ChatRequestDto = ChatRequest

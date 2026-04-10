@@ -9,11 +9,7 @@ export interface TavilyResult {
 }
 
 interface TavilyApiResponse {
-    results: Array<{
-        title: string
-        url: string
-        content: string
-    }>
+    results: Array<{ title: string; url: string; content: string }>
 }
 
 interface TavilyErrorBody {
@@ -21,7 +17,7 @@ interface TavilyErrorBody {
     error?: string
 }
 
-/** Abort fetch after this many milliseconds to prevent indefinite SSE hangs. */
+/** Abort fetch after this many ms to prevent indefinite SSE stream hangs. */
 const FETCH_TIMEOUT_MS = 10_000
 
 @Injectable()
@@ -63,13 +59,11 @@ export class TavilyService {
         }
 
         if (!response.ok) {
-            // Read Tavily's error body for a specific diagnostic message
-            // (e.g. "Invalid API key" on 401, rate-limit detail on 429).
             let detail = ''
             try {
                 const body = (await response.json()) as TavilyErrorBody
                 detail = body.message ?? body.error ?? ''
-            } catch { /* ignore parse errors — body may not be JSON */ }
+            } catch { /* body may not be JSON */ }
 
             throw new ServiceUnavailableException(
                 `Web search returned an error (${response.status})${detail ? `: ${detail}` : '. Please try again later.'}`,

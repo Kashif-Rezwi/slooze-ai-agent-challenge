@@ -5,9 +5,9 @@ import { ChatRequestDto } from './dto/chat.dto'
 import type { ChatStream } from '../common/types'
 
 /**
- * Routes incoming chat requests to the correct pipeline:
- *   documentId present → RagService  (Challenge B)
- *   plain text only    → SearchService (Challenge A)
+ * Routes chat requests to the correct pipeline:
+ *   documentId present → RagService (PDF RAG)
+ *   no documentId      → SearchService (web search)
  */
 @Injectable()
 export class ChatService {
@@ -17,11 +17,7 @@ export class ChatService {
     ) {}
 
     async streamHandle(dto: ChatRequestDto): Promise<ChatStream> {
-        // When `messages` is provided (multi-turn format), only the last message
-        // is extracted as the query. Conversation history is intentionally not
-        // forwarded to the AI — neither the web-search nor the RAG prompt is
-        // designed for multi-turn context. This is a known limitation; supporting
-        // history would require accumulating prior turns into the system/user prompt.
+        // Multi-turn: only the last message is used — history is not forwarded to the AI.
         const query = dto.message ?? dto.messages?.at(-1)?.content
         if (!query?.trim()) {
             throw new BadRequestException('No message content found in request')
