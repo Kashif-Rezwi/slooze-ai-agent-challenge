@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, BadGatewayException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
     streamText as aiStreamText,
@@ -8,6 +8,12 @@ import {
 import { createOpenAI } from '@ai-sdk/openai'
 import { AI_CONFIG } from './ai.config'
 import { Env } from '../env.validation'
+
+/**
+ * Maximum texts sent to the embedding API in one request.
+ * Guards against hitting OpenAI's per-request item/token limits on large PDFs.
+ */
+const EMBEDDING_BATCH_SIZE = 100
 
 /**
  * Central abstraction over all AI SDK calls.
@@ -24,31 +30,63 @@ export class AIService {
         })
     }
 
-    async *streamText(system: string, user: string): AsyncGenerator<string> {
-        const result = aiStreamText({
-            model: this.openai(AI_CONFIG.chatModel),
-            system,
-            prompt: user,
-            maxOutputTokens: AI_CONFIG.maxOutputTokens,
-        })
-        for await (const chunk of result.textStream) {
-            yield chunk
+    /**
+     * Returns the SDK's AsyncIterable<string> token stream directly.
+     * No generator wrapper needed — AsyncIterable is sufficient for `for await`.
+     * Runtime streaming errors bubble to ChatController which sends an SSE error event.
+     */
+    streamText(system: string, user: string): AsyncIterable<string> {
+        try {
+            const result = aiStreamText({
+                model: this.openai(AI_CONFIG.chatModel),
+                system,
+                prompt: user,
+                maxOutputTokens: AI_CONFIG.maxOutputTokens,
+            })
+            return result.textStream
+        } catch (err) {
+            throw new BadGatewayException(
+                `AI text generation unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
         }
     }
 
     async embed(text: string): Promise<number[]> {
-        const { embedding } = await aiEmbed({
-            model: this.openai.embedding(AI_CONFIG.embeddingModel),
-            value: text,
-        })
-        return embedding
+        try {
+            const { embedding } = await aiEmbed({
+                model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                value: text,
+            })
+            return embedding
+        } catch (err) {
+            throw new BadGatewayException(
+                `AI embedding unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
+        }
     }
 
+    /**
+     * Embeds texts in batches of EMBEDDING_BATCH_SIZE to avoid hitting
+     * the OpenAI API's per-request token/item limits on large documents.
+     */
     async embedMany(texts: string[]): Promise<number[][]> {
-        const { embeddings } = await aiEmbedMany({
-            model: this.openai.embedding(AI_CONFIG.embeddingModel),
-            values: texts,
-        })
-        return embeddings
+        const results: number[][] = []
+
+        for (let i = 0; i < texts.length; i += EMBEDDING_BATCH_SIZE) {
+            const batch = texts.slice(i, i + EMBEDDING_BATCH_SIZE)
+            try {
+                const { embeddings } = await aiEmbedMany({
+                    model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                    values: batch,
+                })
+                results.push(...embeddings)
+            } catch (err) {
+                throw new BadGatewayException(
+                    `AI embedding unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
+                )
+            }
+        }
+
+        return results
     }
 }

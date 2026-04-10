@@ -6,11 +6,13 @@ import type { Mode } from '@slooze/shared'
 
 /**
  * Shared return shape for both pipeline branches.
- * `stream` emits AI token strings; `sources` are URL strings (web) or a
- * filename string (PDF); `mode` identifies which pipeline answered.
+ * `stream` is AsyncIterable<string> — satisfied by both the AI SDK's textStream
+ * and inline async generators used for fallback messages.
+ * `sources` are URL strings (web) or a filename string (PDF).
+ * `mode` identifies which pipeline answered.
  */
 export interface ChatStream {
-    stream: AsyncGenerator<string>
+    stream: AsyncIterable<string>
     sources: string[]
     mode: Mode
 }
