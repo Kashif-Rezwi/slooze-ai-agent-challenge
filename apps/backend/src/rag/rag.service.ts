@@ -23,7 +23,7 @@ export class RagService {
         const queryEmbedding = await this.ai.embed(query)
 
         // 2. Retrieve the nearest chunks for this specific document
-        const { documents, metadatas } = this.vectorStore.queryChunks({
+        const { documents, metadatas } = await this.vectorStore.queryChunks({
             embedding: queryEmbedding,
             nResults: this.topK,
             documentId,
