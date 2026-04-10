@@ -4,7 +4,7 @@ import { AIService } from '../ai/ai.service'
 import { AI_CONFIG } from '../ai/ai.config'
 import { VectorStoreService } from '../ingest/vector-store.service'
 import { Env } from '../env.validation'
-import type { ChatStream } from '../chat/chat.service'
+import type { ChatStream } from '../common/types'
 
 @Injectable()
 export class RagService {

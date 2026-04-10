@@ -2,7 +2,20 @@ import { Injectable } from '@nestjs/common'
 import { AIService } from '../ai/ai.service'
 import { AI_CONFIG } from '../ai/ai.config'
 import { TavilyService, TavilyResult } from './tavily.service'
-import type { ChatStream } from '../chat/chat.service'
+import type { ChatStream } from '../common/types'
+
+/**
+ * Pure utility — formats Tavily results into the user prompt sent to the LLM.
+ * Extracted as a module-level function (not a class method) because it has no
+ * dependency on service state, making it trivially unit-testable in isolation.
+ */
+function buildUserPrompt(query: string, results: TavilyResult[]): string {
+    const formatted = results
+        .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet}`)
+        .join('\n\n')
+
+    return `Search results:\n\n${formatted}\n\nQuestion: ${query}`
+}
 
 @Injectable()
 export class SearchService {
@@ -25,17 +38,9 @@ export class SearchService {
         }
 
         return {
-            stream: this.ai.streamText(AI_CONFIG.systemPrompts.webSearch, this.buildUserPrompt(query, results)),
+            stream: this.ai.streamText(AI_CONFIG.systemPrompts.webSearch, buildUserPrompt(query, results)),
             sources: results.map(r => r.url),
             mode: 'web',
         }
-    }
-
-    private buildUserPrompt(query: string, results: TavilyResult[]): string {
-        const formatted = results
-            .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet}`)
-            .join('\n\n')
-
-        return `Search results:\n\n${formatted}\n\nQuestion: ${query}`
     }
 }

@@ -2,20 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common'
 import { SearchService } from '../search/search.service'
 import { RagService } from '../rag/rag.service'
 import { ChatRequestDto } from './dto/chat.dto'
-import type { Mode } from '@slooze/shared'
-
-/**
- * Shared return shape for both pipeline branches.
- * `stream` is AsyncIterable<string> — satisfied by both the AI SDK's textStream
- * and inline async generators used for fallback messages.
- * `sources` are URL strings (web) or a filename string (PDF).
- * `mode` identifies which pipeline answered.
- */
-export interface ChatStream {
-    stream: AsyncIterable<string>
-    sources: string[]
-    mode: Mode
-}
+import type { ChatStream } from '../common/types'
 
 /**
  * Routes incoming chat requests to the correct pipeline:
@@ -27,7 +14,7 @@ export class ChatService {
     constructor(
         private readonly searchService: SearchService,
         private readonly ragService: RagService,
-    ) {}
+    ) { }
 
     async streamHandle(dto: ChatRequestDto): Promise<ChatStream> {
         const query = dto.message ?? dto.messages?.at(-1)?.content
