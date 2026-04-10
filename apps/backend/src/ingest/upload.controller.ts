@@ -7,17 +7,7 @@ import {
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import multer from 'multer'
-import { IngestService } from '../ingest/ingest.service'
-
-/** Strips unsafe characters and caps filename at 255 chars. */
-function sanitiseFilename(name: string): string {
-    return (
-        name
-            .replace(/[^a-zA-Z0-9 ._-]/g, '_')
-            .slice(0, 255)
-            .trim() || 'upload.pdf'
-    )
-}
+import { IngestService } from './ingest.service'
 
 @Controller('upload')
 export class UploadController {
@@ -49,6 +39,6 @@ export class UploadController {
             )
         }
 
-        return this.ingestService.ingest(file.buffer, sanitiseFilename(file.originalname))
+        return this.ingestService.ingest(file.buffer, file.originalname)
     }
 }

@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
+import type { ChatRequest } from '@slooze/shared'
 import { SearchService } from '../search/search.service'
 import { RagService } from '../rag/rag.service'
-import { ChatRequestDto } from './dto/chat.dto'
 import type { ChatStream } from '../common/types'
 
 /**
@@ -16,7 +16,7 @@ export class ChatService {
         private readonly ragService: RagService,
     ) {}
 
-    async streamHandle(dto: ChatRequestDto): Promise<ChatStream> {
+    async streamHandle(dto: ChatRequest): Promise<ChatStream> {
         // Multi-turn: only the last message is used — history is not forwarded to the AI.
         const query = dto.message ?? dto.messages?.at(-1)?.content
         if (!query?.trim()) {

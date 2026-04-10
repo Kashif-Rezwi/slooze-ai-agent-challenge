@@ -1,9 +1,7 @@
-import { Controller, Post, Body, Req, Res, UsePipes } from '@nestjs/common'
-import { Request, Response } from 'express'
-import { randomUUID } from 'node:crypto'
-import { ChatRequestSchema } from '@slooze/shared'
+import { Controller, Post, Body, Res, UsePipes } from '@nestjs/common'
+import { Response } from 'express'
+import { ChatRequestSchema, ChatRequest } from '@slooze/shared'
 import { ChatService } from './chat.service'
-import { ChatRequestDto } from './dto/chat.dto'
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe'
 
 @Controller('chat')
@@ -25,9 +23,7 @@ export class ChatController {
      */
     @Post()
     @UsePipes(new ZodValidationPipe(ChatRequestSchema))
-    async chat(@Body() dto: ChatRequestDto, @Req() req: Request, @Res() res: Response) {
-        const requestId = (req.headers['x-request-id'] as string | undefined) ?? randomUUID()
-
+    async chat(@Body() dto: ChatRequest, @Res() res: Response) {
         try {
             // HttpExceptions thrown here reach the global filter as JSON (headers not yet sent).
             const { stream, sources, mode } = await this.chatService.streamHandle(dto)
@@ -36,7 +32,6 @@ export class ChatController {
             res.setHeader('Cache-Control', 'no-cache, no-transform')
             res.setHeader('Connection', 'keep-alive')
             res.setHeader('X-Accel-Buffering', 'no') // prevent nginx buffering SSE
-            res.setHeader('x-request-id', requestId)
             res.flushHeaders()
 
             res.write('retry: 0\n\n') // disable browser auto-reconnect (no resume semantics)

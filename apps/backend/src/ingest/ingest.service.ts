@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PDFParse } from 'pdf-parse'
 import { v4 as uuidv4 } from 'uuid'
@@ -54,17 +54,25 @@ export class IngestService {
     }
 
     async ingest(buffer: Buffer, filename: string): Promise<IngestResult> {
-        const parser = new PDFParse({ data: new Uint8Array(buffer) })
-        const { text } = await parser.getText()
-        const cleanText = normaliseText(text)
+        let text: string
+        try {
+            const parser = new PDFParse({ data: new Uint8Array(buffer) })
+            ;({ text } = await parser.getText())
+        } catch {
+            throw new BadRequestException(
+                'Could not parse the uploaded file. Ensure it is a valid, unencrypted PDF.',
+            )
+        }
 
+        const cleanText = normaliseText(text)
         const chunks = chunkText(cleanText, this.chunkSize, this.chunkOverlap)
+
         if (chunks.length === 0) {
             return { documentId: uuidv4(), filename }
         }
 
         const documentId = uuidv4()
-        const embeddings = await this.ai.embedMany(chunks) // batched internally
+        const embeddings = await this.ai.embedMany(chunks)
         const metadatas = chunks.map((_, i) => ({ documentId, chunkIndex: i, filename }))
 
         await this.vectorStore.addChunks({ embeddings, documents: chunks, metadatas })

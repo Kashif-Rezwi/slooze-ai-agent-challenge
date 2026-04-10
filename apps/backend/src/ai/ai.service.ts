@@ -9,9 +9,6 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { AI_CONFIG } from './ai.config'
 import { Env } from '../env.validation'
 
-/** Max texts per embedding request — avoids hitting OpenAI's per-request limits. */
-const EMBEDDING_BATCH_SIZE = 100
-
 /** Single point of contact for all AI SDK calls — swap the provider here only. */
 @Injectable()
 export class AIService {
@@ -51,25 +48,17 @@ export class AIService {
         }
     }
 
-    /** Sends texts in batches to stay within OpenAI's per-request limits. */
     async embedMany(texts: string[]): Promise<number[][]> {
-        const results: number[][] = []
-
-        for (let i = 0; i < texts.length; i += EMBEDDING_BATCH_SIZE) {
-            const batch = texts.slice(i, i + EMBEDDING_BATCH_SIZE)
-            try {
-                const { embeddings } = await aiEmbedMany({
-                    model: this.openai.embedding(AI_CONFIG.embeddingModel),
-                    values: batch,
-                })
-                results.push(...embeddings)
-            } catch (err) {
-                throw new BadGatewayException(
-                    `AI embedding unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
-                )
-            }
+        try {
+            const { embeddings } = await aiEmbedMany({
+                model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                values: texts,
+            })
+            return embeddings
+        } catch (err) {
+            throw new BadGatewayException(
+                `AI embedding unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
         }
-
-        return results
     }
 }
