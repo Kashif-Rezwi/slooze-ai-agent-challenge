@@ -1,36 +1,15 @@
-import React from 'react'
-import type { PdfSession } from '@/app/page'
+import type { PdfSession } from '@/lib/types'
+import { Icons } from '@/components/ui/Icons'
 
 interface PdfSessionBannerProps {
   library: PdfSession[]
   activePdfId: string | null
-  /** True when web mode is active — hides the banner completely with an animation */
+  /** True when web mode is active — hides the banner with an animation. */
   isPaused: boolean
   onActivate: (id: string) => void
   onRemove: (id: string) => void
 }
 
-function DocIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" {...props}>
-      <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-    </svg>
-  )
-}
-
-function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} aria-hidden="true" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  )
-}
-
-/**
- * Renders a horizontal scrollable row of PDF pills — one per uploaded document.
- * Includes a smooth scale & collapse animation when hiding/showing (e.g. mode changes).
- * Returns null when the library is empty.
- */
 export default function PdfSessionBanner({
   library,
   activePdfId,
@@ -71,7 +50,6 @@ export default function PdfSessionBanner({
                 }
               `}
             >
-              {/* Activate button */}
               <button
                 onClick={() => !isActive && onActivate(pdf.documentId)}
                 disabled={isActive}
@@ -80,13 +58,12 @@ export default function PdfSessionBanner({
                 className="flex items-center gap-1.5 min-w-0 disabled:cursor-default"
               >
                 {isActive
-                  ? <CheckIcon className="w-3 h-3 shrink-0" />
-                  : <DocIcon className="w-3 h-3 shrink-0" />
+                  ? <Icons.Check className="w-3 h-3 shrink-0" />
+                  : <Icons.DocFilled className="w-3 h-3 shrink-0" />
                 }
                 <span className="truncate max-w-[140px]">{pdf.filename}</span>
               </button>
 
-              {/* Remove button */}
               <button
                 onClick={(e) => { e.stopPropagation(); onRemove(pdf.documentId) }}
                 aria-label={`Remove ${pdf.filename}`}
