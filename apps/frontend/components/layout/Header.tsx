@@ -26,18 +26,6 @@ export default function Header() {
             AI
           </span>
         </div>
-
-        {/* Beta pill */}
-        <span
-          className="text-[10px] font-semibold px-1.5 py-0.5 rounded tracking-widest uppercase"
-          style={{
-            background: 'linear-gradient(135deg, rgba(108,99,255,0.15) 0%, rgba(159,150,255,0.12) 100%)',
-            border: '1px solid rgba(108,99,255,0.25)',
-            color: 'var(--color-accent-light)'
-          }}
-        >
-          Beta
-        </span>
       </div>
     </header>
   )
