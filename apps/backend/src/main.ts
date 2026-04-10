@@ -1,12 +1,17 @@
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
+import { Logger } from '@nestjs/common'
 import { AppModule } from './app.module'
-import { GlobalExceptionFilter } from './common/filters/http-exception.filter'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
+    const logger = new Logger('Bootstrap')
 
     app.setGlobalPrefix('api')
+
+    // Enables graceful shutdown — NestJS flushes in-flight requests and fires
+    // OnModuleDestroy hooks before the process exits on SIGTERM / SIGINT.
+    app.enableShutdownHooks()
 
     // NOTE: NestFactory.create() runs before ConfigModule initialises, so
     // ConfigService is not yet available here. Reading process.env directly
@@ -17,12 +22,9 @@ async function bootstrap() {
         allowedHeaders: ['Content-Type', 'Authorization'],
     })
 
-    app.useGlobalFilters(new GlobalExceptionFilter())
-
     const port = process.env.PORT ?? 3001
     await app.listen(port)
-    console.log(`Backend running on http://localhost:${port}/api`)
+    logger.log(`Backend running on http://localhost:${port}/api`)
 }
 
 bootstrap()
-
