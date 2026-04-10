@@ -12,10 +12,21 @@ export interface IngestResult {
 }
 
 /**
- * Splits plain text into overlapping fixed-size chunks (character-based).
+ * Splits plain text into overlapping fixed-size character-based chunks.
+ *
+ * Guards against misconfigured parameters defensively — even though
+ * env.validation.ts enforces CHUNK_OVERLAP < CHUNK_SIZE at startup, this
+ * function is self-defending so it cannot loop infinitely if called directly
+ * (e.g. in tests) with bad values.
+ *
  * Returns an empty array if the text is blank.
  */
 function chunkText(text: string, chunkSize: number, overlap: number): string[] {
+    if (chunkSize <= 0 || overlap >= chunkSize) {
+        throw new Error(
+            `Invalid chunk parameters: chunkSize=${chunkSize}, overlap=${overlap}. overlap must be < chunkSize.`,
+        )
+    }
     const chunks: string[] = []
     let start = 0
     while (start < text.length) {
@@ -23,6 +34,25 @@ function chunkText(text: string, chunkSize: number, overlap: number): string[] {
         start += chunkSize - overlap
     }
     return chunks
+}
+
+/**
+ * Normalises extracted PDF text while preserving paragraph structure.
+ *
+ * Raw pdf-parse output contains meaningful newlines (paragraph / section breaks)
+ * that are valuable context signals for the LLM. Collapsing everything to a
+ * single space (the previous approach) made chunks harder to parse.
+ *
+ * Strategy:
+ *   - Collapse runs of spaces/tabs within a line → single space
+ *   - Reduce 3+ consecutive newlines → paragraph break (\n\n)
+ *   - Leave single and double newlines intact (sentence / paragraph boundaries)
+ */
+function normaliseText(raw: string): string {
+    return raw
+        .replace(/[ \t]+/g, ' ')       // collapse inline whitespace
+        .replace(/\n{3,}/g, '\n\n')    // cap runs of blank lines at one paragraph break
+        .trim()
 }
 
 @Injectable()
@@ -44,7 +74,7 @@ export class IngestService {
         // 1. Parse PDF → plain text using pdf-parse v2 class API
         const parser = new PDFParse({ data: new Uint8Array(buffer) })
         const { text } = await parser.getText()
-        const cleanText = text.replace(/\s+/g, ' ').trim()
+        const cleanText = normaliseText(text)
 
         // 2. Chunk
         const chunks = chunkText(cleanText, this.chunkSize, this.chunkOverlap)
@@ -54,10 +84,11 @@ export class IngestService {
 
         const documentId = uuidv4()
 
-        // 3. Embed all chunks in one batch call
+        // 3. Embed all chunks — batched internally by AIService to stay within
+        //    OpenAI's per-request limits (see AIService.embedMany).
         const embeddings = await this.ai.embedMany(chunks)
 
-        // 4. Store in the vector store with documentId + chunkIndex metadata
+        // 4. Store in ChromaDB with documentId + chunkIndex metadata
         const metadatas = chunks.map((_, i) => ({ documentId, chunkIndex: i, filename }))
 
         await this.vectorStore.addChunks({ embeddings, documents: chunks, metadatas })

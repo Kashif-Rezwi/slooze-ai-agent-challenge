@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, Logger, ServiceUnavailableException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { CloudClient } from 'chromadb'
-import type { Collection } from 'chromadb'
+import type { Collection, EmbeddingFunction } from 'chromadb'
 import { Env } from '../env.validation'
 
 export interface AddChunksArgs {
@@ -23,6 +23,18 @@ export interface QueryChunksResult {
 
 /** All documents share one collection, filtered by documentId at query time. */
 const COLLECTION_NAME = 'slooze_documents'
+
+/**
+ * Typed no-op embedding function.
+ *
+ * ChromaDB requires an IEmbeddingFunction when creating/getting a collection.
+ * We always supply pre-computed embeddings, so this function is never actually
+ * called — but providing a properly typed stub avoids the `null as never` cast
+ * that would silently break if ChromaDB's interface changes.
+ */
+const noopEmbeddingFunction: EmbeddingFunction = {
+    generate: (_texts: string[]): Promise<number[][]> => Promise.resolve([]),
+}
 
 /**
  * ChromaDB Cloud vector store.
@@ -53,15 +65,21 @@ export class VectorStoreService implements OnModuleInit {
             const tenant   = this.config.get('CHROMA_TENANT')
             const database = this.config.get('CHROMA_DATABASE')
 
+            if (!apiKey || !tenant || !database) {
+                this.logger.warn(
+                    'ChromaDB credentials not set — PDF RAG (Challenge B) is unavailable. ' +
+                    'Set CHROMA_API_KEY, CHROMA_TENANT, CHROMA_DATABASE to enable it.',
+                )
+                return
+            }
+
             // CloudClient wires host (api.trychroma.com), port 443, ssl, and
             // the x-chroma-token auth header automatically.
             const client = new CloudClient({ apiKey, tenant, database })
 
             this.collection = await client.getOrCreateCollection({
                 name: COLLECTION_NAME,
-                // Suppress the DefaultEmbeddingFunction warning — we always
-                // pass pre-computed embeddings so no embedding function is needed.
-                embeddingFunction: null as never,
+                embeddingFunction: noopEmbeddingFunction,
             })
 
             this.logger.log(
@@ -89,10 +107,14 @@ export class VectorStoreService implements OnModuleInit {
         return this.collection
     }
 
+    /**
+     * Upserts chunks into ChromaDB — idempotent so retries after a partial
+     * failure won't create duplicate entries for the same IDs.
+     */
     async addChunks({ embeddings, documents, metadatas }: AddChunksArgs): Promise<void> {
         const collection = this.assertConnected()
         const ids = metadatas.map((m, i) => `${m.documentId}_${i}`)
-        await collection.add({ ids, embeddings, documents, metadatas })
+        await collection.upsert({ ids, embeddings, documents, metadatas })
     }
 
     async queryChunks({ embedding, nResults, documentId }: QueryChunksArgs): Promise<QueryChunksResult> {
@@ -106,9 +128,14 @@ export class VectorStoreService implements OnModuleInit {
                 // Scope results to this document only.
                 where: { documentId: { $eq: documentId } },
             })
-        } catch {
+        } catch (err) {
             // ChromaDB throws when nResults > number of indexed vectors for the
-            // given document. Return empty so the caller surfaces a graceful message.
+            // given document. Log at warn (not error) — returning empty is graceful,
+            // but the failure should be visible rather than silently swallowed.
+            this.logger.warn(
+                `ChromaDB query failed (likely nResults=${nResults} exceeds indexed count for doc "${documentId}"): ` +
+                `${err instanceof Error ? err.message : String(err)}`,
+            )
             return { documents: [], metadatas: [] }
         }
 

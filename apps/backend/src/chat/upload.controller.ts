@@ -16,7 +16,7 @@ export class UploadController {
     /**
      * POST /api/upload
      * Accepts a PDF file (multipart/form-data, field name "file").
-     * Parses, chunks, embeds, and stores it in the in-memory vector store.
+     * Parses, chunks, embeds, and stores it in the ChromaDB Cloud vector store.
      * Returns { documentId, filename } on success.
      *
      * Constraints (enforced by Multer):
