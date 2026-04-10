@@ -14,9 +14,14 @@ export class ChatService {
     constructor(
         private readonly searchService: SearchService,
         private readonly ragService: RagService,
-    ) { }
+    ) {}
 
     async streamHandle(dto: ChatRequestDto): Promise<ChatStream> {
+        // When `messages` is provided (multi-turn format), only the last message
+        // is extracted as the query. Conversation history is intentionally not
+        // forwarded to the AI — neither the web-search nor the RAG prompt is
+        // designed for multi-turn context. This is a known limitation; supporting
+        // history would require accumulating prior turns into the system/user prompt.
         const query = dto.message ?? dto.messages?.at(-1)?.content
         if (!query?.trim()) {
             throw new BadRequestException('No message content found in request')
