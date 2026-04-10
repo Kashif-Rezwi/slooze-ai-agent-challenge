@@ -60,7 +60,7 @@ export class IngestService {
         // 4. Store in the vector store with documentId + chunkIndex metadata
         const metadatas = chunks.map((_, i) => ({ documentId, chunkIndex: i, filename }))
 
-        this.vectorStore.addChunks({ embeddings, documents: chunks, metadatas })
+        await this.vectorStore.addChunks({ embeddings, documents: chunks, metadatas })
 
         this.logger.log(`Ingested "${filename}" → ${chunks.length} chunks (documentId: ${documentId})`)
 
