@@ -6,8 +6,8 @@ import type { ChatStream } from '../common/types'
 
 /**
  * Routes chat requests to the correct pipeline:
- *   documentId present → RagService (PDF RAG)
- *   no documentId      → SearchService (web search)
+ *   documentIds present → RagService (PDF RAG, one or more documents)
+ *   no documentIds      → SearchService (web search)
  */
 @Injectable()
 export class ChatService {
@@ -23,8 +23,8 @@ export class ChatService {
             throw new BadRequestException('No message content found in request')
         }
 
-        if (dto.documentId) {
-            return this.ragService.streamAnswer(dto.documentId, query)
+        if (dto.documentIds && dto.documentIds.length > 0) {
+            return this.ragService.streamAnswer(dto.documentIds, query)
         }
 
         return this.searchService.streamSearch(query)

@@ -3,18 +3,18 @@ import { Icons } from '@/components/ui/Icons'
 
 interface PdfSessionBannerProps {
   library: PdfSession[]
-  activePdfId: string | null
+  activePdfIds: string[]
   /** True when web mode is active — hides the banner with an animation. */
   isPaused: boolean
-  onActivate: (id: string) => void
+  onToggle: (id: string) => void
   onRemove: (id: string) => void
 }
 
 export default function PdfSessionBanner({
   library,
-  activePdfId,
+  activePdfIds,
   isPaused,
-  onActivate,
+  onToggle,
   onRemove,
 }: PdfSessionBannerProps) {
   if (library.length === 0) return null
@@ -36,7 +36,7 @@ export default function PdfSessionBanner({
         aria-label="Uploaded PDF documents"
       >
         {library.map((pdf) => {
-          const isActive = pdf.documentId === activePdfId
+          const isActive = activePdfIds.includes(pdf.documentId)
 
           return (
             <div
@@ -50,12 +50,13 @@ export default function PdfSessionBanner({
                 }
               `}
             >
+              {/* Toggle button — clicking selects/deselects the document */}
               <button
-                onClick={() => !isActive && onActivate(pdf.documentId)}
-                disabled={isActive}
-                title={isActive ? `Active: ${pdf.filename}` : `Switch to: ${pdf.filename}`}
-                aria-label={isActive ? `Active document: ${pdf.filename}` : `Switch to ${pdf.filename}`}
-                className="flex items-center gap-1.5 min-w-0 disabled:cursor-default"
+                onClick={() => onToggle(pdf.documentId)}
+                title={isActive ? `Deselect: ${pdf.filename}` : `Select: ${pdf.filename}`}
+                aria-label={isActive ? `Deselect document: ${pdf.filename}` : `Select document: ${pdf.filename}`}
+                aria-pressed={isActive}
+                className="flex items-center gap-1.5 min-w-0"
               >
                 {isActive
                   ? <Icons.Check className="w-3 h-3 shrink-0" />
@@ -64,6 +65,7 @@ export default function PdfSessionBanner({
                 <span className="truncate max-w-[140px]">{pdf.filename}</span>
               </button>
 
+              {/* Remove button */}
               <button
                 onClick={(e) => { e.stopPropagation(); onRemove(pdf.documentId) }}
                 aria-label={`Remove ${pdf.filename}`}

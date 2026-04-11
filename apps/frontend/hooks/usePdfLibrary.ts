@@ -7,62 +7,82 @@ import type { PdfSession } from '@/lib/types'
 
 interface UsePdfLibraryReturn {
   library: PdfSession[]
-  activePdfId: string | null
+  /** Set of selected document IDs — multiple can be active at once. */
+  activePdfIds: string[]
   isUploading: boolean
   uploadError: string | null
-  onPdfSelect: (file: File) => Promise<void>
-  onActivate: (id: string) => void
+  onPdfSelect: (files: File[]) => Promise<void>
+  /** Toggle a document's selection on/off. */
+  onToggle: (id: string) => void
   onRemove: (id: string) => void
-  /** Call when switching to PDF mode — auto-activates the most recent doc if none is active. */
+  /** Call when switching to PDF mode — auto-selects the most recent doc if none are selected. */
   onSwitchToPdf: () => void
-  /** Returns the active documentId in PDF mode, null otherwise. */
-  effectiveDocumentId: (mode: Mode) => string | null
+  /** Returns selected IDs in PDF mode, empty array in web mode. */
+  effectiveDocumentIds: (mode: Mode) => string[]
 }
 
 export function usePdfLibrary(): UsePdfLibraryReturn {
   const [library, setLibrary] = useState<PdfSession[]>([])
-  const [activePdfId, setActivePdfId] = useState<string | null>(null)
+  const [activePdfIds, setActivePdfIds] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  async function onPdfSelect(file: File) {
+  async function onPdfSelect(files: File[]) {
     setUploadError(null)
     setIsUploading(true)
     try {
-      const { documentId, filename } = await uploadPdf(file)
-      setLibrary(prev => [...prev, { documentId, filename }])
-      setActivePdfId(documentId)
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+      // Upload all selected files concurrently; collect successes and failures separately.
+      const results = await Promise.allSettled(files.map(f => uploadPdf(f)))
+
+      const uploaded: PdfSession[] = []
+      const errors: string[] = []
+
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          uploaded.push(result.value)
+        } else {
+          errors.push(result.reason instanceof Error ? result.reason.message : 'Upload failed')
+        }
+      }
+
+      if (uploaded.length > 0) {
+        setLibrary(prev => [...prev, ...uploaded])
+        // Auto-select all newly uploaded documents.
+        setActivePdfIds(prev => [...prev, ...uploaded.map(u => u.documentId)])
+      }
+
+      if (errors.length > 0) {
+        setUploadError(errors.length === 1 ? errors[0] : `${errors.length} files failed to upload`)
+      }
     } finally {
       setIsUploading(false)
     }
   }
 
-  function onActivate(id: string) {
-    setActivePdfId(id)
+  function onToggle(id: string) {
+    setActivePdfIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
   }
 
   function onRemove(id: string) {
-    setLibrary(prev => {
-      const next = prev.filter(p => p.documentId !== id)
-      if (activePdfId === id) {
-        setActivePdfId(next.length > 0 ? next[next.length - 1].documentId : null)
-      }
-      return next
-    })
+    setLibrary(prev => prev.filter(p => p.documentId !== id))
+    setActivePdfIds(prev => prev.filter(x => x !== id))
     setUploadError(null)
   }
 
   function onSwitchToPdf() {
-    if (library.length > 0 && activePdfId === null) {
-      setActivePdfId(library[library.length - 1].documentId)
-    }
+    // If no docs are selected but the library has docs, auto-select the most recent one.
+    setActivePdfIds(prev => {
+      if (prev.length > 0) return prev
+      if (library.length > 0) return [library[library.length - 1].documentId]
+      return prev
+    })
   }
 
-  function effectiveDocumentId(mode: Mode): string | null {
-    return mode === 'pdf' ? activePdfId : null
+  function effectiveDocumentIds(mode: Mode): string[] {
+    return mode === 'pdf' ? activePdfIds : []
   }
 
-  return { library, activePdfId, isUploading, uploadError, onPdfSelect, onActivate, onRemove, onSwitchToPdf, effectiveDocumentId }
+  return { library, activePdfIds, isUploading, uploadError, onPdfSelect, onToggle, onRemove, onSwitchToPdf, effectiveDocumentIds }
 }

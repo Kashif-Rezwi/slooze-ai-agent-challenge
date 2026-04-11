@@ -13,7 +13,7 @@ export interface AddChunksArgs {
 export interface QueryChunksArgs {
     embedding: number[]
     nResults: number
-    documentId: string
+    documentIds: string[]
 }
 
 export interface QueryChunksResult {
@@ -89,20 +89,27 @@ export class VectorStoreService implements OnModuleInit {
         await collection.upsert({ ids, embeddings, documents, metadatas })
     }
 
-    async queryChunks({ embedding, nResults, documentId }: QueryChunksArgs): Promise<QueryChunksResult> {
+    async queryChunks({ embedding, nResults, documentIds }: QueryChunksArgs): Promise<QueryChunksResult> {
         const collection = this.assertConnected()
+
+        if (documentIds.length === 0) return { documents: [], metadatas: [] }
+
+        // Use $in to match any of the selected document IDs in a single query.
+        const whereFilter = documentIds.length === 1
+            ? { documentId: { $eq: documentIds[0] } }
+            : { documentId: { $in: documentIds } }
 
         let results
         try {
             results = await collection.query({
                 queryEmbeddings: [embedding],
                 nResults,
-                where: { documentId: { $eq: documentId } },
+                where: whereFilter,
             })
         } catch (err) {
-            // ChromaDB throws when nResults exceeds the indexed count for this document.
+            // ChromaDB throws when nResults exceeds the indexed count for the matching documents.
             this.logger.warn(
-                `ChromaDB query failed (nResults=${nResults}, doc="${documentId}"): ` +
+                `ChromaDB query failed (nResults=${nResults}, docs=${JSON.stringify(documentIds)}): ` +
                 `${err instanceof Error ? err.message : String(err)}`,
             )
             return { documents: [], metadatas: [] }

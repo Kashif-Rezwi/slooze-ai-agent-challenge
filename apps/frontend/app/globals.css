@@ -58,13 +58,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Scrollbar Hide (global) ─────────────────────────────────────────────── */
+/* ─── Scrollbar Hide (global — both axes) ────────────────────────────────── */
 * {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE / Edge legacy */
 }
 *::-webkit-scrollbar {
-  display: none;
+  display: none;              /* Chrome / Safari / WebKit */
 }
 
 /* ─── Keyframe Animations ─────────────────────────────────────────────────── */

@@ -42,9 +42,9 @@ export default function ChatPage() {
         <div className="max-w-3xl mx-auto space-y-2">
           <PdfSessionBanner
             library={pdf.library}
-            activePdfId={pdf.activePdfId}
+            activePdfIds={pdf.activePdfIds}
             isPaused={mode === 'web'}
-            onActivate={pdf.onActivate}
+            onToggle={pdf.onToggle}
             onRemove={pdf.onRemove}
           />
           <ChatInput
@@ -52,7 +52,7 @@ export default function ChatPage() {
             isUploading={pdf.isUploading}
             mode={mode}
             onModeChange={handleModeChange}
-            onSend={(text) => sendMessage(text, pdf.effectiveDocumentId(mode))}
+            onSend={(text) => sendMessage(text, pdf.effectiveDocumentIds(mode))}
             onPdfSelect={mode === 'pdf' ? pdf.onPdfSelect : undefined}
           />
         </div>
