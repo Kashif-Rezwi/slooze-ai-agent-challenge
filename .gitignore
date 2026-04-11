@@ -7,8 +7,6 @@ dist
 .DS_Store
 .turbo
 .vercel
-slooze-planning.md
-slooze-planning-implementation.md
 
 # Next.js
 .next
