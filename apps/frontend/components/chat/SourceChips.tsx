@@ -1,7 +1,5 @@
-/**
- * Renders sources as compact cards with favicons.
- * Wired fully in Phase 4 (web URLs) and Phase 6 (PDF page refs).
- */
+import { Icons } from '@/components/ui/Icons'
+
 interface SourceChipsProps {
   sources: string[]
 }
@@ -56,10 +54,7 @@ export default function SourceChips({ sources }: SourceChipsProps) {
                   className="w-3 h-3 rounded-sm shrink-0 opacity-70 group-hover:opacity-100"
                 />
               ) : (
-                /* PDF page reference icon */
-                <svg className="w-3 h-3 shrink-0 text-[var(--color-text-subtle)]" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                </svg>
+                <Icons.DocFilled className="w-3 h-3 shrink-0 text-[var(--color-text-subtle)]" />
               )}
               <span className="text-[11px] text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)] font-medium transition-colors truncate max-w-[120px]">
                 {hostname}
@@ -71,4 +66,3 @@ export default function SourceChips({ sources }: SourceChipsProps) {
     </div>
   )
 }
-

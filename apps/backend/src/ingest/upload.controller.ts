@@ -7,21 +7,15 @@ import {
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import multer from 'multer'
-import { IngestService } from '../ingest/ingest.service'
+import { IngestService } from './ingest.service'
 
 @Controller('upload')
 export class UploadController {
     constructor(private readonly ingestService: IngestService) {}
 
     /**
-     * POST /api/upload
-     * Accepts a PDF file (multipart/form-data, field name "file").
-     * Parses, chunks, embeds, and stores it in the in-memory vector store.
+     * POST /api/upload — accepts a PDF (field: "file", max 20 MB).
      * Returns { documentId, filename } on success.
-     *
-     * Constraints (enforced by Multer):
-     *   - MIME type: application/pdf only
-     *   - Max size: 20 MB
      */
     @Post()
     @UseInterceptors(
@@ -38,8 +32,11 @@ export class UploadController {
         }),
     )
     async upload(@UploadedFile() file: Express.Multer.File) {
+        // Catches both missing-file and Multer MIME-rejection (fileFilter error isn't always propagated).
         if (!file) {
-            throw new BadRequestException('No file uploaded')
+            throw new BadRequestException(
+                'No valid PDF file received. Ensure the field name is "file" and the file is a valid PDF (application/pdf).',
+            )
         }
 
         return this.ingestService.ingest(file.buffer, file.originalname)

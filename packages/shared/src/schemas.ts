@@ -17,10 +17,11 @@ export const ChatMessageSchema = z.object({
 // At least one of message or messages must be present.
 // - message: used for direct API calls (curl, tests)
 // - messages: used by useChat hook (sends full conversation history array)
+// documentIds: one or more uploaded PDF document IDs to query against in RAG mode.
 export const ChatRequestSchema = z.object({
     message: z.string().min(1).optional(),
     messages: z.array(ChatMessageSchema).optional(),
-    documentId: z.string().uuid().optional(),
+    documentIds: z.array(z.string().uuid()).min(1).optional(),
 }).refine(
     data => data.message || (data.messages && data.messages.length > 0),
     { message: 'Either message or messages (non-empty) must be provided' }

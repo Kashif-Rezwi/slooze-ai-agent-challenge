@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PDFParse } from 'pdf-parse'
 import { v4 as uuidv4 } from 'uuid'
@@ -11,11 +11,13 @@ export interface IngestResult {
     filename: string
 }
 
-/**
- * Splits plain text into overlapping fixed-size chunks (character-based).
- * Returns an empty array if the text is blank.
- */
+/** Splits text into overlapping fixed-size character chunks. Throws if overlap >= chunkSize. */
 function chunkText(text: string, chunkSize: number, overlap: number): string[] {
+    if (chunkSize <= 0 || overlap >= chunkSize) {
+        throw new Error(
+            `Invalid chunk parameters: chunkSize=${chunkSize}, overlap=${overlap}. overlap must be < chunkSize.`,
+        )
+    }
     const chunks: string[] = []
     let start = 0
     while (start < text.length) {
@@ -23,6 +25,17 @@ function chunkText(text: string, chunkSize: number, overlap: number): string[] {
         start += chunkSize - overlap
     }
     return chunks
+}
+
+/**
+ * Normalises PDF text while preserving paragraph structure for RAG quality.
+ * Collapses inline whitespace (spaces/tabs) but keeps single/double newlines intact.
+ */
+function normaliseText(raw: string): string {
+    return raw
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
 }
 
 @Injectable()
@@ -41,23 +54,25 @@ export class IngestService {
     }
 
     async ingest(buffer: Buffer, filename: string): Promise<IngestResult> {
-        // 1. Parse PDF → plain text using pdf-parse v2 class API
-        const parser = new PDFParse({ data: new Uint8Array(buffer) })
-        const { text } = await parser.getText()
-        const cleanText = text.replace(/\s+/g, ' ').trim()
+        let text: string
+        try {
+            const parser = new PDFParse({ data: new Uint8Array(buffer) })
+            ;({ text } = await parser.getText())
+        } catch {
+            throw new BadRequestException(
+                'Could not parse the uploaded file. Ensure it is a valid, unencrypted PDF.',
+            )
+        }
 
-        // 2. Chunk
+        const cleanText = normaliseText(text)
         const chunks = chunkText(cleanText, this.chunkSize, this.chunkOverlap)
+
         if (chunks.length === 0) {
             return { documentId: uuidv4(), filename }
         }
 
         const documentId = uuidv4()
-
-        // 3. Embed all chunks in one batch call
         const embeddings = await this.ai.embedMany(chunks)
-
-        // 4. Store in the vector store with documentId + chunkIndex metadata
         const metadatas = chunks.map((_, i) => ({ documentId, chunkIndex: i, filename }))
 
         await this.vectorStore.addChunks({ embeddings, documents: chunks, metadatas })
