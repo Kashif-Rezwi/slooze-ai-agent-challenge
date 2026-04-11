@@ -15,6 +15,17 @@ export const Icons = {
       <line x1="16" y1="17" x2="8" y2="17" />
     </svg>
   ),
+  /** Filled variant — used for PDF source chips and document pills. */
+  DocFilled: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" {...props}>
+      <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+    </svg>
+  ),
+  Check: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} aria-hidden="true" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  ),
   Bolt: (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -34,5 +45,5 @@ export const Icons = {
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
-  )
+  ),
 }

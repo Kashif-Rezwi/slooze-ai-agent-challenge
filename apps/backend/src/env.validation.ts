@@ -1,17 +1,27 @@
 import { z } from 'zod'
 
-const envSchema = z.object({
-    PORT: z.coerce.number().default(3001),
-    FRONTEND_URL: z.string().default('http://localhost:3000'),
-    OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
-    TAVILY_API_KEY: z.string().min(1, 'TAVILY_API_KEY is required'),
-    CHROMA_API_KEY: z.string().min(1, 'CHROMA_API_KEY is required'),
-    CHROMA_TENANT: z.string().min(1, 'CHROMA_TENANT is required'),
-    CHROMA_DATABASE: z.string().min(1, 'CHROMA_DATABASE is required'),
-    CHUNK_SIZE: z.coerce.number().default(500),
-    CHUNK_OVERLAP: z.coerce.number().default(50),
-    TOP_K_RESULTS: z.coerce.number().default(5),
-})
+const envSchema = z
+    .object({
+        PORT:         z.coerce.number().default(3001),
+        FRONTEND_URL: z.string().default('http://localhost:3000'),
+
+        OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
+        TAVILY_API_KEY: z.string().min(1, 'TAVILY_API_KEY is required'),
+
+        // Optional — VectorStoreService degrades gracefully if unset (PDF routes return 503).
+        CHROMA_API_KEY:  z.string().default(''),
+        CHROMA_TENANT:   z.string().default(''),
+        CHROMA_DATABASE: z.string().default(''),
+
+        // CHUNK_OVERLAP < CHUNK_SIZE is enforced by .refine() below — see chunkText().
+        CHUNK_SIZE:    z.coerce.number().min(100, 'CHUNK_SIZE must be at least 100').default(500),
+        CHUNK_OVERLAP: z.coerce.number().min(0,   'CHUNK_OVERLAP must be non-negative').default(50),
+        TOP_K_RESULTS: z.coerce.number().min(1,   'TOP_K_RESULTS must be at least 1').default(5),
+    })
+    .refine(data => data.CHUNK_OVERLAP < data.CHUNK_SIZE, {
+        message: 'CHUNK_OVERLAP must be strictly less than CHUNK_SIZE',
+        path: ['CHUNK_OVERLAP'],
+    })
 
 export type Env = z.infer<typeof envSchema>
 

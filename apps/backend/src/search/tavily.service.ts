@@ -9,12 +9,16 @@ export interface TavilyResult {
 }
 
 interface TavilyApiResponse {
-    results: Array<{
-        title: string
-        url: string
-        content: string
-    }>
+    results: Array<{ title: string; url: string; content: string }>
 }
+
+interface TavilyErrorBody {
+    message?: string
+    error?: string
+}
+
+/** Abort fetch after this many ms to prevent indefinite SSE stream hangs. */
+const FETCH_TIMEOUT_MS = 10_000
 
 @Injectable()
 export class TavilyService {
@@ -27,6 +31,9 @@ export class TavilyService {
     }
 
     async search(query: string): Promise<TavilyResult[]> {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
         let response: Response
         try {
             response = await fetch('https://api.tavily.com/search', {
@@ -38,16 +45,28 @@ export class TavilyService {
                     max_results: this.maxResults,
                     search_depth: 'basic',
                 }),
+                signal: controller.signal,
             })
-        } catch {
+        } catch (err) {
+            const isTimeout = err instanceof Error && err.name === 'AbortError'
             throw new ServiceUnavailableException(
-                'Web search is currently unavailable. Please try again later.'
+                isTimeout
+                    ? 'Web search timed out. Please try again.'
+                    : 'Web search is currently unavailable. Please try again later.',
             )
+        } finally {
+            clearTimeout(timer)
         }
 
         if (!response.ok) {
+            let detail = ''
+            try {
+                const body = (await response.json()) as TavilyErrorBody
+                detail = body.message ?? body.error ?? ''
+            } catch { /* body may not be JSON */ }
+
             throw new ServiceUnavailableException(
-                `Web search returned an error (${response.status}). Please try again later.`
+                `Web search returned an error (${response.status})${detail ? `: ${detail}` : '. Please try again later.'}`,
             )
         }
 

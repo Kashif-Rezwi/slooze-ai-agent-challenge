@@ -1,24 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
+import type { ChatRequest } from '@slooze/shared'
 import { SearchService } from '../search/search.service'
 import { RagService } from '../rag/rag.service'
-import { ChatRequestDto } from './dto/chat.dto'
-import type { Mode } from '@slooze/shared'
+import type { ChatStream } from '../common/types'
 
 /**
- * Shared return shape for both pipeline branches.
- * `stream` emits AI token strings; `sources` are URL strings (web) or a
- * filename string (PDF); `mode` identifies which pipeline answered.
- */
-export interface ChatStream {
-    stream: AsyncGenerator<string>
-    sources: string[]
-    mode: Mode
-}
-
-/**
- * Routes incoming chat requests to the correct pipeline:
- *   documentId present → RagService  (Challenge B)
- *   plain text only    → SearchService (Challenge A)
+ * Routes chat requests to the correct pipeline:
+ *   documentIds present → RagService (PDF RAG, one or more documents)
+ *   no documentIds      → SearchService (web search)
  */
 @Injectable()
 export class ChatService {
@@ -27,14 +16,15 @@ export class ChatService {
         private readonly ragService: RagService,
     ) {}
 
-    async streamHandle(dto: ChatRequestDto): Promise<ChatStream> {
+    async streamHandle(dto: ChatRequest): Promise<ChatStream> {
+        // Multi-turn: only the last message is used — history is not forwarded to the AI.
         const query = dto.message ?? dto.messages?.at(-1)?.content
         if (!query?.trim()) {
             throw new BadRequestException('No message content found in request')
         }
 
-        if (dto.documentId) {
-            return this.ragService.streamAnswer(dto.documentId, query)
+        if (dto.documentIds && dto.documentIds.length > 0) {
+            return this.ragService.streamAnswer(dto.documentIds, query)
         }
 
         return this.searchService.streamSearch(query)

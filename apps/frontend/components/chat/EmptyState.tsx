@@ -1,15 +1,24 @@
-'use client'
-
 import type { ReactNode } from 'react'
+import type { Mode } from '@slooze/shared'
 import { Icons } from '@/components/ui/Icons'
 
-const SUGGESTIONS: { icon: ReactNode; label: string }[] = [
-  { icon: <Icons.Globe className="w-4 h-4" />, label: 'Search the web' },
-  { icon: <Icons.Document className="w-4 h-4" />, label: 'Chat with a PDF' },
-  { icon: <Icons.Bolt className="w-4 h-4" />, label: 'Summarize content' },
+interface Suggestion {
+  icon: ReactNode
+  label: string
+  mode: Mode
+}
+
+const SUGGESTIONS: Suggestion[] = [
+  { icon: <Icons.Globe className="w-4 h-4" />,    label: 'Search the web',   mode: 'web' },
+  { icon: <Icons.Document className="w-4 h-4" />, label: 'Chat with a PDF',  mode: 'pdf' },
+  { icon: <Icons.Bolt className="w-4 h-4" />,     label: 'Summarize content', mode: 'web' },
 ]
 
-export default function EmptyState() {
+interface EmptyStateProps {
+  onSuggestionClick: (mode: Mode) => void
+}
+
+export default function EmptyState({ onSuggestionClick }: EmptyStateProps) {
   return (
     <div className="h-full flex flex-col items-center justify-center gap-8 py-16 animate-fade-in">
       <div className="text-center space-y-2.5 max-w-sm">
@@ -31,14 +40,15 @@ export default function EmptyState() {
 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {SUGGESTIONS.map((s, i) => (
-          <div
+          <button
             key={s.label}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] text-sm text-[var(--color-text-muted)] cursor-default select-none animate-scale-in"
+            onClick={() => onSuggestionClick(s.mode)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-surface-3)] transition-colors cursor-pointer select-none animate-scale-in"
             style={{ animationDelay: `${i * 60}ms` }}
           >
             {s.icon}
             <span>{s.label}</span>
-          </div>
+          </button>
         ))}
       </div>
     </div>

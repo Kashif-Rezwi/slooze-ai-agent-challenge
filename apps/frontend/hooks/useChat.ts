@@ -15,7 +15,7 @@ interface UseChatReturn {
   messages: ChatMessage[]
   isLoading: boolean
   error: string | null
-  sendMessage: (text: string, documentId?: string | null) => Promise<void>
+  sendMessage: (text: string, documentIds?: string[]) => Promise<void>
 }
 
 // SSE event shapes emitted by POST /api/chat
@@ -30,7 +30,7 @@ export function useChat(): UseChatReturn {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const sendMessage = useCallback(async (text: string, documentId?: string | null) => {
+  const sendMessage = useCallback(async (text: string, documentIds?: string[]) => {
     const trimmed = text.trim()
     if (!trimmed || isLoading) return
 
@@ -48,10 +48,13 @@ export function useChat(): UseChatReturn {
     setIsLoading(true)
 
     try {
+      const body: Record<string, unknown> = { message: trimmed }
+      if (documentIds && documentIds.length > 0) body.documentIds = documentIds
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed, ...(documentId ? { documentId } : {}) }),
+        body: JSON.stringify(body),
       })
 
       if (!res.ok || !res.body) {

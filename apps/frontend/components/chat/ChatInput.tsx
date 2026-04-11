@@ -11,7 +11,7 @@ interface ChatInputProps {
   onModeChange: (mode: Mode) => void
   onSend: (text: string) => void
   /** Undefined in web mode — also disables drag-drop automatically. */
-  onPdfSelect?: (file: File) => void
+  onPdfSelect?: (files: File[]) => void
 }
 
 export default function ChatInput({
@@ -29,7 +29,7 @@ export default function ChatInput({
 
   function handleSend() {
     const trimmed = value.trim()
-    if (!trimmed || isLoading) return
+    if (!trimmed || isLoading || isUploading) return
     onSend(trimmed)
     setValue('')
     if (textareaRef.current) {
@@ -65,21 +65,19 @@ export default function ChatInput({
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault()
     setIsDragging(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file && file.type === 'application/pdf' && onPdfSelect) {
-      onPdfSelect(file)
-    }
+    if (!onPdfSelect) return
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf')
+    if (files.length > 0) onPdfSelect(files)
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (file && onPdfSelect) {
-      onPdfSelect(file)
-    }
-    e.target.value = '' // reset so same file can be re-selected
+    const files = Array.from(e.target.files ?? [])
+    if (files.length > 0 && onPdfSelect) onPdfSelect(files)
+    e.target.value = '' // reset so the same file(s) can be re-selected
   }
 
-  const canSend = value.trim().length > 0 && !isLoading
+  // Disabled when: input is empty, a request is in-flight, or a file is uploading.
+  const canSend = value.trim().length > 0 && !isLoading && !isUploading
   const isPdfMode = mode === 'pdf'
 
   const placeholder = isDragging
@@ -99,7 +97,7 @@ export default function ChatInput({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* ── TOP: Textarea ─────────────────────────────────────────── */}
+      {/* ── Textarea ───────────────────────────────────────────────── */}
       <div className="px-4 pt-4 pb-2">
         <textarea
           ref={textareaRef}
@@ -115,10 +113,10 @@ export default function ChatInput({
         />
       </div>
 
-      {/* ── BOTTOM: Toolbar row ───────────────────────────────────── */}
+      {/* ── Toolbar ────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-3 pb-3 gap-2">
 
-        {/* Left — Mode toggle + PDF attach (PDF mode only) */}
+        {/* Left — Mode toggle + PDF attach */}
         <div className="flex items-center gap-2">
 
           {/* Segmented mode control */}
@@ -156,13 +154,14 @@ export default function ChatInput({
             </button>
           </div>
 
-          {/* Paperclip — rendered only in PDF mode */}
+          {/* Paperclip — PDF mode only; accepts multiple files */}
           {isPdfMode && (
             <>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".pdf,application/pdf"
+                multiple
                 className="hidden"
                 onChange={handleFileChange}
               />
