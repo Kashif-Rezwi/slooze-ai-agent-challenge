@@ -22,6 +22,7 @@ export default function PdfSessionBanner({
   return (
     <div
       className={`
+        -mx-[2px]
         overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[max-height,opacity,transform]
         ${isPaused
           ? 'max-h-0 opacity-0 scale-95 pointer-events-none'
@@ -31,7 +32,12 @@ export default function PdfSessionBanner({
       aria-hidden={isPaused}
     >
       <div
-        className="flex items-center gap-2 overflow-x-auto py-1"
+        className="flex items-center gap-2 overflow-x-auto py-1 px-[4px] [&::-webkit-scrollbar]:hidden"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent, black 6px, black calc(100% - 6px), transparent)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 6px, black calc(100% - 6px), transparent)',
+          scrollbarWidth: 'none'
+        }}
         role="group"
         aria-label="Uploaded PDF documents"
       >
