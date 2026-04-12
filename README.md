@@ -171,7 +171,7 @@ Open **http://localhost:3000** in your browser.
 
 1. User types a question → `POST /api/chat { message, messages? }`
 2. `ChatService` detects no `documentIds` → delegates to `SearchService`
-3. **If conversation history is present**, GPT-4o-mini rewrites the follow-up into a standalone query before hitting Tavily (e.g. `"Which one is cheaper?"` + MacBook context → `"MacBook Pro 14-inch M5 vs 16-inch M5 Pro 2025 price"`)
+3. **If conversation history is present**, GPT-4o-mini rewrites the follow-up into a standalone query before hitting Tavily (e.g. after a conversation about MacBook models, `"Which one is cheaper?"` → `"MacBook Pro M5 14-inch vs 16-inch price 2025"`)
 4. `TavilyService` fetches the top 5 live search results for the (possibly reformulated) query
 5. Conversation history + search results are injected into the LLM prompt
 6. GPT-4o-mini streams a grounded answer; tokens arrive in real time via SSE
@@ -216,7 +216,7 @@ Streams a Server-Sent Events response.
 **Request body:**
 ```json
 { "message": "What is React?" }
-{ "message": "Which one is cheaper?", "messages": [{"role":"user","content":"..."},{"role":"assistant","content":"..."}] }
+{ "message": "Which one is cheaper?", "messages": [{"role":"user","content":"What are the MacBook M5 specs?"},{"role":"assistant","content":"The MacBook Pro M5 comes in 14-inch and 16-inch models..."}] }
 { "message": "Summarise section 3", "documentIds": ["uuid-1", "uuid-2"], "messages": [...] }
 ```
 
@@ -251,7 +251,7 @@ Both challenges share one process and one `/api/chat` endpoint. In production yo
 All calls to the Vercel AI SDK go through `AIService`. No other module imports `ai` or `@ai-sdk/openai` directly. To swap OpenAI for any other provider (Anthropic, Gemini, Mistral), change one file.
 
 ### 4. Query reformulation for follow-up web searches
-Vague follow-ups like `"Which one is cheaper?"` are meaningless to a search engine without context. Before calling Tavily, the backend makes a fast non-streaming LLM call (`generateText` with a small token budget) to rewrite the query using conversation history. If that call fails, it falls back to the original query — errors degrade gracefully without breaking the response.
+A follow-up like `"Which one is cheaper?"` is meaningless to a search engine without knowing what the user was just discussing. Before calling Tavily, the backend makes a fast non-streaming LLM call (`generateText` with a small token budget) to rewrite the follow-up into a self-contained query using conversation history (e.g. → `"MacBook Pro M5 14-inch vs 16-inch price 2025"`). If that call fails, it falls back to the original query — errors degrade gracefully without breaking the response.
 
 ### 5. ChromaDB Cloud over local/FAISS
 ChromaDB's JS client with Cloud hosting requires zero local setup — no Docker, no Python. FAISS has no official JS client and would require Python bindings. ChromaDB wins clearly for this stack.
