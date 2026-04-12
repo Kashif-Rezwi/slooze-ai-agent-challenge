@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useRef, useCallback } from 'react'
 import type { PdfSession } from '@/lib/types'
 import { Icons } from '@/components/ui/Icons'
 
@@ -17,7 +20,30 @@ export default function PdfSessionBanner({
   onToggle,
   onRemove,
 }: PdfSessionBannerProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [fadeLeft, setFadeLeft] = useState(false)
+  const [fadeRight, setFadeRight] = useState(false)
+
+  // Recompute which edges need a fade based on current scroll state.
+  const updateFades = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setFadeLeft(el.scrollLeft > 4)
+    setFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }, [])
+
+  // Initialise fades once the element mounts and its width is known.
+  const setScrollRef = useCallback((el: HTMLDivElement | null) => {
+    (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el
+    if (el) updateFades()
+  }, [updateFades])
+
   if (library.length === 0) return null
+
+  // Build mask from the current left/right fade state.
+  const leftStop = fadeLeft ? 'transparent, black 6px,' : 'black,'
+  const rightStop = fadeRight ? ', black calc(100% - 6px), transparent' : ', black'
+  const mask = `linear-gradient(to right, ${leftStop} ${rightStop})`
 
   return (
     <div
@@ -32,11 +58,13 @@ export default function PdfSessionBanner({
       aria-hidden={isPaused}
     >
       <div
+        ref={setScrollRef}
+        onScroll={updateFades}
         className="flex items-center gap-2 overflow-x-auto py-1 px-[4px] [&::-webkit-scrollbar]:hidden"
         style={{
-          maskImage: 'linear-gradient(to right, transparent, black 6px, black calc(100% - 6px), transparent)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent, black 6px, black calc(100% - 6px), transparent)',
-          scrollbarWidth: 'none'
+          maskImage: mask,
+          WebkitMaskImage: mask,
+          scrollbarWidth: 'none',
         }}
         role="group"
         aria-label="Uploaded PDF documents"
