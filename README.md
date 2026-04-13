@@ -7,9 +7,9 @@ Rather than delivering two isolated scripts, this solution is designed as a cohe
 ## Screenshots
 
 <div align="center">
-  <img src="assets/screenshots/web-search.png" alt="Web Search Interface" width="48%">
+  <img src="assets/screenshots/web-search.png" alt="Web Search Interface" width="40%">
   &nbsp;
-  <img src="assets/screenshots/pdf-rag.png" alt="PDF RAG Interface" width="48%">
+  <img src="assets/screenshots/pdf-rag.png" alt="PDF RAG Interface" width="40%">
   <br>
   <em>Left: Live Web Search capability | Right: PDF Document Q&A (RAG)</em>
 </div>
