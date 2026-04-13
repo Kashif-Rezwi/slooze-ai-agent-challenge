@@ -4,6 +4,16 @@ A **unified AI chat interface** that routes intelligently between live web searc
 
 Rather than delivering two isolated scripts, this solution is designed as a coherent product: one input box, two AI-powered backends, automatic routing based on the shape of the request. This mirrors the architecture of real AI assistants like Perplexity and demonstrates product thinking alongside engineering execution.
 
+## Screenshots
+
+<div align="center">
+  <img src="assets/screenshots/web-search.png" alt="Web Search Interface" width="48%" align="top">
+  &nbsp;
+  <img src="assets/screenshots/pdf-rag.png" alt="PDF RAG Interface" width="48%" align="top">
+  <br><br>
+  <em>Left: Live Web Search capability | Right: PDF Document Q&A (RAG)</em>
+</div>
+
 ---
 
 ## Challenges Addressed
