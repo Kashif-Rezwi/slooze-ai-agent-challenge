@@ -1,6 +1,7 @@
 import { Injectable, BadGatewayException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
+    generateText as aiGenerateText,
     streamText as aiStreamText,
     embed as aiEmbed,
     embedMany as aiEmbedMany,
@@ -18,6 +19,27 @@ export class AIService {
         this.openai = createOpenAI({ apiKey: this.config.get('OPENAI_API_KEY') })
     }
 
+    /**
+     * Non-streaming text generation — for short internal utility calls
+     * (e.g. query reformulation). Uses a small token budget for speed.
+     */
+    async generateText(system: string, user: string): Promise<string> {
+        try {
+            const { text } = await aiGenerateText({
+                model: this.openai(AI_CONFIG.chatModel),
+                system,
+                prompt: user,
+                maxOutputTokens: AI_CONFIG.maxQueryTokens,
+            })
+            return text.trim()
+        } catch (err) {
+            throw new BadGatewayException(
+                `AI text generation unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
+        }
+    }
+
+    /** Streaming text generation — tokens delivered to the SSE controller as they arrive. */
     streamText(system: string, user: string): AsyncIterable<string> {
         try {
             const result = aiStreamText({
@@ -29,7 +51,7 @@ export class AIService {
             return result.textStream
         } catch (err) {
             throw new BadGatewayException(
-                `AI text generation unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
+                `AI streaming unavailable: ${err instanceof Error ? err.message : 'Unknown error'}`,
             )
         }
     }

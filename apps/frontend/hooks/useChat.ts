@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { Mode } from '@slooze/shared'
 
 export interface ChatMessage {
@@ -25,10 +25,17 @@ type SseEvent =
   | { type: 'done' }
   | { type: 'error'; message: string }
 
+// Wire format for a history turn — only role + content cross the network boundary.
+type HistoryTurn = { role: 'user' | 'assistant'; content: string }
+
 export function useChat(): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Always-current snapshot of messages without adding it to useCallback deps.
+  const messagesRef = useRef<ChatMessage[]>(messages)
+  messagesRef.current = messages
 
   const sendMessage = useCallback(async (text: string, documentIds?: string[]) => {
     const trimmed = text.trim()
@@ -36,8 +43,13 @@ export function useChat(): UseChatReturn {
 
     setError(null)
 
-    // Add user message + empty assistant placeholder together so the UI
-    // renders the typing indicator immediately, then fills in as tokens arrive.
+    const history: HistoryTurn[] = messagesRef.current
+      .filter(m => m.content.trim().length > 0)
+      .slice(-6) // last 3 exchanges (6 turns)
+      .map(m => ({ role: m.role, content: m.content }))
+
+    // Add user message + empty assistant placeholder together so the typing indicator
+    // appears immediately while the stream fills in tokens.
     const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: trimmed }
     const assistantId = crypto.randomUUID()
     setMessages(prev => [
@@ -50,6 +62,7 @@ export function useChat(): UseChatReturn {
     try {
       const body: Record<string, unknown> = { message: trimmed }
       if (documentIds && documentIds.length > 0) body.documentIds = documentIds
+      if (history.length > 0) body.messages = history
 
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -71,7 +84,7 @@ export function useChat(): UseChatReturn {
         if (done) break
 
         buffer += decoder.decode(value, { stream: true })
-        // SSE lines are separated by \n\n; split and keep any partial line in buffer
+        // SSE frames are delimited by \n\n; keep any partial frame in the buffer.
         const parts = buffer.split('\n\n')
         buffer = parts.pop() ?? ''
 
@@ -99,14 +112,12 @@ export function useChat(): UseChatReturn {
             } else if (event.type === 'error') {
               throw new Error(event.message)
             }
-            // 'done' event — loop ends naturally when stream closes
           }
         }
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong'
       setError(msg)
-      // Replace the empty placeholder with a visible error message
       setMessages(prev => prev.map(m =>
         m.id === assistantId ? { ...m, content: `Error: ${msg}` } : m
       ))
