@@ -28,7 +28,7 @@ Rather than delivering two isolated scripts, this solution is designed as a cohe
 
 ---
 
-## Architecture
+## Architecture overview
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -69,9 +69,9 @@ Routing is purely request-shape detection — no LLM needed for dispatch. Fast a
 
 ---
 
-## Tech Stack
+## Dependencies used
 
-**Backend** — `apps/backend/`
+**Backend** — `agent/`
 - NestJS 11 (TypeScript, CommonJS)
 - Vercel AI SDK 6 — `streamText`, `generateText`, `embed`, `embedMany`
 - OpenAI `gpt-4o-mini` (chat) + `text-embedding-3-small` (embeddings)
@@ -96,15 +96,15 @@ Routing is purely request-shape detection — no LLM needed for dispatch. Fast a
 
 ```
 slooze-ai-challenge/
+├── agent/                         NestJS API (port 3001)
+│   └── src/
+│       ├── ai/                AIService — all OpenAI calls (swap provider here)
+│       ├── chat/              ChatController + ChatService (router)
+│       ├── search/            TavilyService, SearchService  ← Challenge A
+│       ├── ingest/            IngestService, VectorStoreService, UploadController
+│       ├── rag/               RagService  ← Challenge B
+│       └── common/            ZodValidationPipe, HttpExceptionFilter, shared types
 ├── apps/
-│   ├── backend/                   NestJS API (port 3001)
-│   │   └── src/
-│   │       ├── ai/                AIService — all OpenAI calls (swap provider here)
-│   │       ├── chat/              ChatController + ChatService (router)
-│   │       ├── search/            TavilyService, SearchService  ← Challenge A
-│   │       ├── ingest/            IngestService, VectorStoreService, UploadController
-│   │       ├── rag/               RagService  ← Challenge B
-│   │       └── common/            ZodValidationPipe, HttpExceptionFilter, shared types
 │   └── frontend/                  Next.js app (port 3000)
 │       ├── app/                   layout, page, globals.css
 │       ├── components/            Header, ChatWindow, MessageBubble, ChatInput…
@@ -114,11 +114,9 @@ slooze-ai-challenge/
     └── shared/                    Zod schemas + TypeScript types
 ```
 
-> **Note on the `agent/` directory:** The assignment specifies an `agent/` directory containing all source code. In this monorepo the agent lives in two co-located apps: `apps/backend/` (the AI server — NestJS, both challenge pipelines) and `apps/frontend/` (the chat UI). Together they implement the complete agent described in the assignment.
-
 ---
 
-## Setup
+## Setup instructions
 
 ### Prerequisites
 
@@ -139,10 +137,10 @@ pnpm install
 ### 2. Configure environment
 
 ```bash
-cp apps/backend/.env.example apps/backend/.env
+cp agent/.env.example agent/.env
 ```
 
-Edit `apps/backend/.env` and fill in your keys:
+Edit `agent/.env` and fill in your keys:
 
 ```bash
 # Required for both challenges
@@ -161,7 +159,9 @@ CHROMA_DATABASE=default_database
 
 > **Web search only?** The app starts and fully serves Challenge A with just `OPENAI_API_KEY` and `TAVILY_API_KEY`. ChromaDB credentials are optional — PDF upload routes return 503 when they are absent.
 
-### 3. Start both dev servers
+## How to run the project
+
+### Start both dev servers
 
 ```bash
 pnpm dev
@@ -249,7 +249,7 @@ Accepts `multipart/form-data` with a `file` field (PDF only, max 20 MB).
 
 ---
 
-## Key Design Decisions
+## Design decisions and trade-offs
 
 ### 1. Unified chat over two separate UIs
 One input box routes between both challenges based on request shape — no LLM intent detection. This is deterministic, zero-latency, and impossible to misclassify. The badge (`🌐 Web` / `📄 PDF`) on each response makes routing visible without requiring the user to think about it.
