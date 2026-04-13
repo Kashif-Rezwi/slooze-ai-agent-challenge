@@ -85,11 +85,11 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
 
-  apps/frontend:
+  frontend:
     dependencies:
       '@slooze/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../packages/shared
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1

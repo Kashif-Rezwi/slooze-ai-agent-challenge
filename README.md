@@ -81,7 +81,7 @@ Routing is purely request-shape detection — no LLM needed for dispatch. Fast a
 - Zod v4 — env validation + request validation
 - `@nestjs/throttler` — 20 req/min rate limiting
 
-**Frontend** — `apps/frontend/`
+**Frontend** — `frontend/`
 - Next.js 15 App Router + React 19
 - Tailwind CSS v4 (`@theme` tokens, no config file)
 - `react-markdown` + `rehype-highlight` — rendered markdown with syntax highlighting
@@ -104,8 +104,7 @@ slooze-ai-challenge/
 │       ├── ingest/            IngestService, VectorStoreService, UploadController
 │       ├── rag/               RagService  ← Challenge B
 │       └── common/            ZodValidationPipe, HttpExceptionFilter, shared types
-├── apps/
-│   └── frontend/                  Next.js app (port 3000)
+├── frontend/                      Next.js app (port 3000)
 │       ├── app/                   layout, page, globals.css
 │       ├── components/            Header, ChatWindow, MessageBubble, ChatInput…
 │       ├── hooks/                 useChat (SSE + history), usePdfLibrary
