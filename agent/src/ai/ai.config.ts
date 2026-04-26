@@ -1,4 +1,6 @@
 export const AI_CONFIG = {
+    localChatModel: 'gemma3',
+    localEmbeddingModel: 'nomic-embed-text',
     chatModel: 'gpt-4o-mini',
     embeddingModel: 'text-embedding-3-small',
 
