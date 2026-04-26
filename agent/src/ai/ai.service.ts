@@ -9,14 +9,17 @@ import {
 import { createOpenAI } from '@ai-sdk/openai'
 import { AI_CONFIG } from './ai.config'
 import { Env } from '../env.validation'
+import { createOllama } from 'ollama-ai-provider-v2';
 
 /** Single point of contact for all AI SDK calls — swap the provider here only. */
 @Injectable()
 export class AIService {
     private readonly openai: ReturnType<typeof createOpenAI>
+    private readonly ollama: ReturnType<typeof createOllama>
 
     constructor(private readonly config: ConfigService<Env, true>) {
         this.openai = createOpenAI({ apiKey: this.config.get('OPENAI_API_KEY') })
+        this.ollama = createOllama({ baseURL: 'http://localhost:11434/api' })
     }
 
     /**
@@ -26,7 +29,8 @@ export class AIService {
     async generateText(system: string, user: string): Promise<string> {
         try {
             const { text } = await aiGenerateText({
-                model: this.openai(AI_CONFIG.chatModel),
+                // model: this.openai(AI_CONFIG.chatModel),
+                model: this.ollama(AI_CONFIG.localChatModel),
                 system,
                 prompt: user,
                 maxOutputTokens: AI_CONFIG.maxQueryTokens,
@@ -43,7 +47,8 @@ export class AIService {
     streamText(system: string, user: string): AsyncIterable<string> {
         try {
             const result = aiStreamText({
-                model: this.openai(AI_CONFIG.chatModel),
+                // model: this.openai(AI_CONFIG.chatModel),
+                model: this.ollama(AI_CONFIG.localChatModel),
                 system,
                 prompt: user,
                 maxOutputTokens: AI_CONFIG.maxOutputTokens,
@@ -59,7 +64,8 @@ export class AIService {
     async embed(text: string): Promise<number[]> {
         try {
             const { embedding } = await aiEmbed({
-                model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                // model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                model: this.ollama.embeddingModel(AI_CONFIG.localEmbeddingModel),
                 value: text,
             })
             return embedding
@@ -73,7 +79,8 @@ export class AIService {
     async embedMany(texts: string[]): Promise<number[][]> {
         try {
             const { embeddings } = await aiEmbedMany({
-                model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                // model: this.openai.embedding(AI_CONFIG.embeddingModel),
+                model: this.ollama.embeddingModel(AI_CONFIG.localEmbeddingModel),
                 values: texts,
             })
             return embeddings
